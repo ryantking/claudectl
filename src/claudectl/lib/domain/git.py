@@ -7,7 +7,7 @@ from pathlib import Path
 from git import InvalidGitRepositoryError, Repo
 from git.exc import GitCommandError
 
-from claudectl.domain_exceptions import NotInGitRepoError
+from claudectl.lib.domain.exceptions import NotInGitRepoError
 
 
 def get_repo_root() -> Path:

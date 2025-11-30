@@ -7,7 +7,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from claudectl.domain_git import get_repo_name, get_repo_root, is_worktree_clean
+from claudectl.lib.domain.git import get_repo_name, get_repo_root, is_worktree_clean
 
 
 @dataclass
