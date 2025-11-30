@@ -6,11 +6,10 @@ on:
       - 'v*'
 
 permissions:
-  contents: write    # Create GitHub releases
-  id-token: write    # Trusted publishing to PyPI
+  contents: write
 
 jobs:
-  build-and-publish:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,9 +29,6 @@ jobs:
       - name: Build package
         run: uv build --no-sources
 
-      - name: Publish to PyPI
-        run: uv publish
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -41,13 +37,26 @@ jobs:
           body: |
             ## Installation
 
+            ### Via Homebrew (recommended for macOS)
             ```bash
-            # Via pip
-            pip install claudectl
+            brew tap carelesslisper/claudectl
+            brew install claudectl
+            ```
 
-            # Via uv
-            uv tool install claudectl
+            ### Via pip from GitHub Release
+            ```bash
+            pip install https://github.com/carelesslisper/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz
+            ```
 
-            # Via Homebrew (macOS)
-            brew install carelesslisper/claudectl/claudectl
+            ### Via uv from GitHub Release
+            ```bash
+            uv tool install https://github.com/carelesslisper/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz
+            ```
+
+            ### From source
+            ```bash
+            git clone https://github.com/carelesslisper/claudectl.git
+            cd claudectl
+            git checkout ${{ github.ref_name }}
+            just install
             ```
