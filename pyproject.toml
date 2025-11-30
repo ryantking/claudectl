@@ -29,11 +29,11 @@ dependencies = [
 claudectl = "claudectl.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/carelesslisper/claudectl"
-Repository = "https://github.com/carelesslisper/claudectl"
-Download = "https://github.com/carelesslisper/claudectl/releases/latest"
-Issues = "https://github.com/carelesslisper/claudectl/issues"
-Changelog = "https://github.com/carelesslisper/claudectl/releases"
+Homepage = "https://github.com/ryantking/claudectl"
+Repository = "https://github.com/ryantking/claudectl"
+Download = "https://github.com/ryantking/claudectl/releases/latest"
+Issues = "https://github.com/ryantking/claudectl/issues"
+Changelog = "https://github.com/ryantking/claudectl/releases"
 
 [build-system]
 requires = ["uv_build>=0.9.11,<0.10.0"]
