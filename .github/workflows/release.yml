@@ -25,7 +25,7 @@ jobs:
         uses: extractions/setup-just@v2
 
       - name: Build package
-        run: just build
+        run: uv python install 3.13 && just build
 
       - name: Generate Homebrew formula
         run: |
