@@ -55,12 +55,18 @@ bump-minor:
 bump-major:
     uv version --bump major
 
-# Verify Homebrew formula matches uvbrew output
-verify-formula:
+# Generate Homebrew formula with uvbrew
+formula: build
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Building package..."
-    uv build --no-sources
+    echo "Generating Homebrew formula with uvbrew..."
+    uvx uvbrew > Formula/claudectl.rb
+    echo "✓ Formula generated at Formula/claudectl.rb"
+
+# Verify Homebrew formula matches uvbrew output
+verify-formula: build
+    #!/usr/bin/env bash
+    set -euo pipefail
     echo "Generating formula with uvbrew..."
     uvx uvbrew > /tmp/generated-formula.rb
     echo "Comparing formulas..."
