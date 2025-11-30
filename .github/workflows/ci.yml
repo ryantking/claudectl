@@ -30,14 +30,4 @@ jobs:
         run: uv sync --all-groups
 
       - name: Run CI checks
-        run: |
-          uv run ruff check src
-          uv run basedpyright src
-
-      - name: Run tests
-        run: |
-          if [ -d tests ]; then
-            uv run pytest tests
-          else
-            echo "No tests directory found, skipping tests"
-          fi
+        run: just ci
