@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install Just
+        uses: extractions/setup-just@v2
+
+      - name: Install dependencies
+        run: uv python install 3.13 && uv sync --all-groups
+
+      - name: Run CI checks
+        run: just ci

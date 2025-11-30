@@ -10,7 +10,6 @@ from typing import Annotated
 
 import typer
 
-from claudectl.cli.commands.debug import app as debug_app
 from claudectl.cli.commands.hook import app as hook_app
 from claudectl.cli.commands.workspace import app as workspace_app
 from claudectl.cli.output import CLIError, handle_exception, is_json_output, set_json_output
@@ -44,7 +43,6 @@ app = typer.Typer(
 # Register subcommands
 app.add_typer(hook_app, name="hook")
 app.add_typer(workspace_app, name="workspace")
-app.add_typer(debug_app, name="debug")
 
 
 @app.callback()

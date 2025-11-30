@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install Just
+        uses: extractions/setup-just@v2
+
+      - name: Build package
+        run: uv python install 3.13 && just build
+
+      - name: Generate Homebrew formula
+        run: |
+          VERSION="${{ github.ref_name }}"
+          SHA256=$(shasum -a 256 dist/claudectl-$VERSION.tar.gz | awk '{print $1}')
+          just generate-formula "$VERSION" \
+            "https://github.com/ryantking/claudectl/releases/download/$VERSION/claudectl-$VERSION.tar.gz" \
+            "$SHA256"
+
+      - name: Commit formula
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet Formula/claudectl.rb; then
+            echo "Formula unchanged"
+          else
+            git add Formula/claudectl.rb
+            git commit -m "chore: update Homebrew formula for ${{ github.ref_name }}"
+            git push
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            ### Via Homebrew (recommended for macOS)
+            ```bash
+            brew tap ryantking/claudectl
+            brew install claudectl
+            ```
+
+            ### Via pip from GitHub Release
+            ```bash
+            pip install https://github.com/ryantking/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz
+            ```
+
+            ### Via uv from GitHub Release
+            ```bash
+            uv tool install https://github.com/ryantking/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz
+            ```
+
+            ### From source
+            ```bash
+            git clone https://github.com/ryantking/claudectl.git
+            cd claudectl
+            git checkout ${{ github.ref_name }}
+            just install
+            ```
