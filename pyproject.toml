@@ -31,6 +31,7 @@ claudectl = "claudectl.cli.main:main"
 [project.urls]
 Homepage = "https://github.com/carelesslisper/claudectl"
 Repository = "https://github.com/carelesslisper/claudectl"
+Download = "https://github.com/carelesslisper/claudectl/releases/latest"
 Issues = "https://github.com/carelesslisper/claudectl/issues"
 Changelog = "https://github.com/carelesslisper/claudectl/releases"
 
