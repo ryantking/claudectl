@@ -38,11 +38,9 @@ jobs:
 
       - name: Compare formulas
         run: |
-          # Normalize URLs for comparison (both local file:// and GitHub release URLs can vary)
-          sed -i 's|url "file://.*"$|url "PLACEHOLDER"|' Formula/claudectl.rb
-          sed -i 's|url "https://github.com/.*"$|url "PLACEHOLDER"|' Formula/claudectl.rb
-          sed -i 's|url "file://.*"$|url "PLACEHOLDER"|' /tmp/generated-formula.rb
-          sed -i 's|url "https://github.com/.*"$|url "PLACEHOLDER"|' /tmp/generated-formula.rb
+          # Normalize URLs for comparison (URLs vary between local and release builds)
+          sed -i 's|url ".*claudectl.*"$|url "PLACEHOLDER"|' Formula/claudectl.rb
+          sed -i 's|url ".*claudectl.*"$|url "PLACEHOLDER"|' /tmp/generated-formula.rb
 
           # Compare
           if diff -u Formula/claudectl.rb /tmp/generated-formula.rb; then
