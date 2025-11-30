@@ -36,9 +36,12 @@ jobs:
         run: |
           echo "Exporting dependencies..."
           uv export --format requirements.txt --no-dev > /tmp/requirements.txt
+          echo "Computing SHA256 of distribution..."
+          SHA256=$(shasum -a 256 dist/claudectl-${{ github.ref_name }}.tar.gz | awk '{print $1}')
           echo "Generating formula..."
           python3 scripts/generate_formula.py /tmp/requirements.txt "${{ github.ref_name }}" \
-            "https://github.com/carelesslisper/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz" > Formula/claudectl.rb
+            "https://github.com/carelesslisper/claudectl/releases/download/${{ github.ref_name }}/claudectl-${{ github.ref_name }}.tar.gz" \
+            "$SHA256" > Formula/claudectl.rb
           echo "✓ Formula generated"
 
       - name: Commit formula
