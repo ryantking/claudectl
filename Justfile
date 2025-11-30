@@ -62,7 +62,8 @@ formula: build
     echo "Exporting dependencies to requirements.txt..."
     uv export --format requirements.txt --no-dev > /tmp/requirements.txt
     echo "Generating Homebrew formula..."
-    python3 scripts/generate_formula.py /tmp/requirements.txt "$(uv version)" > Formula/claudectl.rb
+    VERSION=$(uv version | awk '{print $NF}')
+    python3 scripts/generate_formula.py /tmp/requirements.txt "$VERSION" > Formula/claudectl.rb
     echo "✓ Formula generated at Formula/claudectl.rb"
 
 # Verify Homebrew formula matches current dependencies
@@ -72,7 +73,8 @@ verify-formula: build
     echo "Exporting dependencies to requirements.txt..."
     uv export --format requirements.txt --no-dev > /tmp/requirements.txt
     echo "Generating formula from requirements..."
-    python3 scripts/generate_formula.py /tmp/requirements.txt "$(uv version)" > /tmp/generated-formula.rb
+    VERSION=$(uv version | awk '{print $NF}')
+    python3 scripts/generate_formula.py /tmp/requirements.txt "$VERSION" > /tmp/generated-formula.rb
     echo "Comparing formulas..."
     if diff -u Formula/claudectl.rb /tmp/generated-formula.rb > /tmp/formula-diff.txt 2>&1; then
         echo "✓ Formula matches current dependencies"
