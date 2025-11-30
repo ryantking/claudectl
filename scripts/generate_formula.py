@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def parse_requirements_with_hashes(req_file: Path) -> dict[str, dict]:
-    """Parse requirements.txt and extract package info with URLs and hashes."""
+    """Parse requirements.txt and extract package info with versions and first hash."""
     packages = {}
     lines = req_file.read_text().splitlines()
     i = 0
@@ -68,9 +68,10 @@ def generate_formula(
   depends_on "python@3.13"
 """
 
-    # Add resources for each dependency (skip the main package itself)
+    # Add resources for each dependency (skip the main package itself and pywin32)
     for pkg_name in sorted(packages.keys()):
-        if pkg_name.lower() == "claudectl":
+        # Skip the main package and Windows-only packages
+        if pkg_name.lower() in ["claudectl", "pywin32"]:
             continue
 
         pkg_info = packages[pkg_name]
@@ -82,11 +83,9 @@ def generate_formula(
 
         sha = hashes[0]  # Use first hash
 
-        # Convert package name for URL (normalize hyphens to underscores)
+        # Standard PyPI URL pattern (works for most packages)
+        # Package names in URLs use underscores instead of hyphens
         url_name = pkg_name.replace("-", "_")
-
-        # Try to find the actual package on PyPI
-        # Most packages follow pattern: package_name-version.tar.gz
         formula += f'''
   resource "{pkg_name}" do
     url "https://files.pythonhosted.org/packages/{url_name}-{version_str}.tar.gz"
