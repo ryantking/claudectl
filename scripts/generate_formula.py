@@ -1,62 +1,58 @@
 #!/usr/bin/env python3
-"""Generate Homebrew formula from requirements.txt"""
+"""Generate Homebrew formula from requirements.txt with hashes."""
 
 import re
 import sys
 from pathlib import Path
 
 
-def parse_requirements(req_file: Path) -> dict[str, tuple[str, str]]:
-    """Parse requirements.txt and extract package names, versions, and hashes."""
+def parse_requirements_with_hashes(req_file: Path) -> dict[str, dict]:
+    """Parse requirements.txt and extract package info with URLs and hashes."""
     packages = {}
-    current_package = None
-    current_hashes = []
+    lines = req_file.read_text().splitlines()
+    i = 0
 
-    with open(req_file) as f:
-        for line in f:
-            line = line.rstrip()
+    while i < len(lines):
+        line = lines[i].rstrip()
+        i += 1
 
-            # Skip comments and empty lines
-            if not line or line.startswith("#"):
-                continue
+        # Skip comments, empty lines, and editable installs
+        if not line or line.startswith("#") or line.startswith("-e"):
+            continue
 
-            # Handle line continuations
+        # Parse package==version line
+        match = re.match(r"^([a-zA-Z0-9_\-\.]+)==([a-zA-Z0-9\._\-]+)", line)
+        if not match:
+            continue
+
+        pkg_name = match.group(1)
+        version = match.group(2)
+        hashes = []
+
+        # Collect all hashes for this package (which may span multiple lines with \)
+        while line.endswith("\\") or (i < len(lines) and lines[i].strip().startswith("--hash=")):
             if line.endswith("\\"):
-                line = line[:-2].strip()
+                line = lines[i].rstrip()
+                i += 1
+            else:
+                line = lines[i].rstrip()
+                i += 1
 
-            # Skip the -e . line (editable install of current package)
-            if line == "-e .":
-                continue
+            # Extract hash from line
+            hash_match = re.search(r"--hash=sha256:([a-f0-9]+)", line)
+            if hash_match:
+                hashes.append(hash_match.group(1))
 
-            # Check if this is a package line (starts with a letter, digit, or underscore)
-            if re.match(r"^[a-zA-Z0-9_-]", line):
-                # Save previous package if any
-                if current_package:
-                    packages[current_package] = tuple(current_hashes)
-                    current_hashes = []
-
-                # Extract package name and version
-                match = re.match(r"^([a-zA-Z0-9_-]+)==([^ \\]+)", line)
-                if match:
-                    current_package = match.group(1)
-                    version = match.group(2)
-                    # Download URL for PyPI
-                    url = f"https://files.pythonhosted.org/packages/{current_package.replace('-', '_')}-{version}.tar.gz"
-            # Check if this is a hash line
-            elif "--hash=" in line:
-                match = re.search(r"--hash=sha256:([a-f0-9]+)", line)
-                if match:
-                    current_hashes.append(match.group(1))
-
-        # Don't forget the last package
-        if current_package:
-            packages[current_package] = tuple(current_hashes)
+        packages[pkg_name] = {"version": version, "hashes": hashes}
 
     return packages
 
 
 def generate_formula(
-    version: str, packages: dict[str, tuple[str, str]], url: str = None, sha256: str = None
+    version: str,
+    packages: dict[str, dict],
+    url: str = None,
+    sha256: str = None,
 ) -> str:
     """Generate the Homebrew formula Ruby code."""
 
@@ -72,23 +68,28 @@ def generate_formula(
   depends_on "python@3.13"
 """
 
-    # Add resources for each dependency
-    for pkg_name, hashes in sorted(packages.items()):
-        # Convert package name to snake_case for resource names
-        resource_name = pkg_name.lower().replace("-", "_")
-
-        # Skip the main package itself
-        if resource_name == "claudectl":
+    # Add resources for each dependency (skip the main package itself)
+    for pkg_name in sorted(packages.keys()):
+        if pkg_name.lower() == "claudectl":
             continue
 
-        if hashes:
-            sha = hashes[0]  # Use first hash
-        else:
-            sha = "PLACEHOLDER"
+        pkg_info = packages[pkg_name]
+        version_str = pkg_info["version"]
+        hashes = pkg_info["hashes"]
 
+        if not hashes:
+            continue
+
+        sha = hashes[0]  # Use first hash
+
+        # Convert package name for URL (normalize hyphens to underscores)
+        url_name = pkg_name.replace("-", "_")
+
+        # Try to find the actual package on PyPI
+        # Most packages follow pattern: package_name-version.tar.gz
         formula += f'''
   resource "{pkg_name}" do
-    url "https://files.pythonhosted.org/packages/{pkg_name.replace('-', '_')}-{version}.tar.gz"
+    url "https://files.pythonhosted.org/packages/{url_name}-{version_str}.tar.gz"
     sha256 "{sha}"
   end
 '''
@@ -114,13 +115,13 @@ if __name__ == "__main__":
 
     req_file = Path(sys.argv[1])
     if not req_file.exists():
-        print(f"Error: {req_file} not found")
+        print(f"Error: {req_file} not found", file=sys.stderr)
         sys.exit(1)
 
     version = sys.argv[2] if len(sys.argv) > 2 else "0.1.0"
     url = sys.argv[3] if len(sys.argv) > 3 else None
     sha256 = sys.argv[4] if len(sys.argv) > 4 else None
 
-    packages = parse_requirements(req_file)
+    packages = parse_requirements_with_hashes(req_file)
     formula = generate_formula(version, packages, url, sha256)
     print(formula)
