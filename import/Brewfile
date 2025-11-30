@@ -1,0 +1,11 @@
+# Claude
+cask "claude"
+cask "claude-code"
+
+# Dev tools
+brew "git"
+brew "gh"
+brew "uv"
+brew "ripgrep"
+brew "lefthook"
+brew "terminal-notifier"

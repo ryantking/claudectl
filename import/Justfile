@@ -1,0 +1,25 @@
+# Install dependencies from Brewfile
+deps:
+    brew bundle --no-upgrade --file=Brewfile
+
+# Authenticate CLI tools (gh)
+auth:
+    gh auth status || gh auth login
+
+# Install claudectl globally
+install: deps auth
+    uv tool install --force --editable .
+
+# Run linter checks
+lint:
+    uv run ruff check src
+    uv run basedpyright src
+
+# Format code
+format:
+    uv run ruff format src
+    uv run ruff check --fix src
+
+# Check formatting without making changes
+format-check:
+    uv run ruff format --check src
