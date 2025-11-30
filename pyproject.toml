@@ -28,6 +28,12 @@ dependencies = [
 [project.scripts]
 claudectl = "claudectl.cli.main:main"
 
+[project.urls]
+Homepage = "https://github.com/carelesslisper/claudectl"
+Repository = "https://github.com/carelesslisper/claudectl"
+Issues = "https://github.com/carelesslisper/claudectl/issues"
+Changelog = "https://github.com/carelesslisper/claudectl/releases"
+
 [build-system]
 requires = ["uv_build>=0.9.11,<0.10.0"]
 build-backend = "uv_build"
