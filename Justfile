@@ -49,46 +49,24 @@ clean:
 version:
     @uv version
 
-# Bump patch version (0.1.0 -> 0.1.1)
-bump-patch:
-    uv version --bump patch
-
-# Bump minor version (0.1.0 -> 0.2.0)
-bump-minor:
-    uv version --bump minor
-
-# Bump major version (0.1.0 -> 1.0.0)
-bump-major:
-    uv version --bump major
-
-# Generate Homebrew formula from requirements.txt
-formula: build
+# Generate Homebrew formula from dependencies
+generate-formula version url="" sha256="":
     #!/usr/bin/env bash
     set -euo pipefail
     echo "Exporting dependencies to requirements.txt..."
     uv export --format requirements.txt --no-dev > /tmp/requirements.txt
     echo "Generating Homebrew formula..."
-    VERSION=$(uv version | awk '{print $NF}')
-    python3 scripts/generate_formula.py /tmp/requirements.txt "$VERSION" > Formula/claudectl.rb
-    echo "✓ Formula generated at Formula/claudectl.rb"
 
-# Verify Homebrew formula matches current dependencies
-verify-formula: build
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "Exporting dependencies to requirements.txt..."
-    uv export --format requirements.txt --no-dev > /tmp/requirements.txt
-    echo "Generating formula from requirements..."
-    VERSION=$(uv version | awk '{print $NF}')
-    python3 scripts/generate_formula.py /tmp/requirements.txt "$VERSION" > /tmp/generated-formula.rb
-    echo "Comparing formulas..."
-    if diff -u Formula/claudectl.rb /tmp/generated-formula.rb > /tmp/formula-diff.txt 2>&1; then
-        echo "✓ Formula matches current dependencies"
+    # Build arguments for the script
+    if [ -z "{{url}}" ] || [ -z "{{sha256}}" ]; then
+        # Just version provided, use defaults
+        scripts/generate_formula.py /tmp/requirements.txt "{{version}}" > Formula/claudectl.rb
     else
-        echo "✗ Formula does not match current dependencies:"
-        cat /tmp/formula-diff.txt
-        exit 1
+        # Full parameters provided
+        scripts/generate_formula.py /tmp/requirements.txt "{{version}}" "{{url}}" "{{sha256}}" > Formula/claudectl.rb
     fi
+
+    echo "✓ Formula generated at Formula/claudectl.rb"
 
 # Create a release (bump version, commit, tag, push)
 release bump:
