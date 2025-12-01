@@ -324,7 +324,7 @@ Format as clean markdown, keep it brief (under 500 words)."""
         if not claude_md_path.exists():
             return False
 
-        with open(claude_md_path, 'r') as f:
+        with open(claude_md_path) as f:
             content = f.read()
 
         # Find placeholder markers
