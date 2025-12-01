@@ -8,8 +8,8 @@ from typing import Annotated
 import typer
 
 from claudectl.cli.output import Result, output
-from claudectl.domain.exceptions import InitError, NotInGitRepoError
-from claudectl.operations.init_ops import InitManager
+from claudectl.core.git import NotInGitRepoError
+from claudectl.operations.init_ops import ImportDirNotFoundError, InitManager
 
 app = typer.Typer(
     name="init",
@@ -73,7 +73,7 @@ def init(
         if global_install:
             target = Path.home() / ".claude"
         else:
-            from claudectl.domain.git import get_repo_root
+            from claudectl.core.git import get_repo_root
 
             target = get_repo_root()
 
@@ -94,7 +94,7 @@ def init(
         result = Result(success=False, message=msg)
         output(result)
         raise typer.Exit(1) from None
-    except InitError as e:
+    except ImportDirNotFoundError as e:
         result = Result(success=False, message=str(e))
         output(result)
         raise typer.Exit(1) from None

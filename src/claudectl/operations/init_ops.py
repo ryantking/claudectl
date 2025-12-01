@@ -9,8 +9,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from claudectl.cli.output import Result
-from claudectl.domain.exceptions import ImportDirNotFoundError
 from claudectl.operations.settings_merge import merge_settings_smart
+
+
+class ImportDirNotFoundError(Exception):
+    """Raised when import directory cannot be found."""
+
+    def __init__(self) -> None:
+        super().__init__("Import directory not found. This may indicate a corrupted installation.")
 
 
 @dataclass

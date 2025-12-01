@@ -5,20 +5,37 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from claudectl.domain.exceptions import (
-    BranchInUseError,
-    NotInGitRepoError,
-    WorkspaceError,
-    WorkspaceExistsError,
-    WorkspaceNotFoundError,
-)
-from claudectl.domain.git import branch_exists, get_current_branch, get_repo_root
-from claudectl.domain.workspace import (
+from claudectl.core.git import NotInGitRepoError, branch_exists, get_current_branch, get_repo_root
+from claudectl.core.workspaces import (
     Workspace,
     discover_workspaces,
     find_workspace_by_branch,
     get_workspace_path,
 )
+
+
+class WorkspaceError(Exception):
+    """Base exception for workspace-related errors."""
+
+    pass
+
+
+class WorkspaceExistsError(WorkspaceError):
+    """Raised when workspace already exists."""
+
+    pass
+
+
+class BranchInUseError(WorkspaceError):
+    """Raised when branch is already checked out in another workspace."""
+
+    pass
+
+
+class WorkspaceNotFoundError(WorkspaceError):
+    """Raised when workspace cannot be found."""
+
+    pass
 
 
 class WorkspaceManager:
