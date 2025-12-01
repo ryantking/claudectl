@@ -136,7 +136,6 @@ just build
 
 3. GitHub Actions automatically:
    - Builds the package
-   - Publishes to PyPI
    - Creates GitHub Release
 
 ## License
