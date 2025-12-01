@@ -73,7 +73,7 @@ def init(
         if global_install:
             target = Path.home() / ".claude"
         else:
-            from claudectl.domain.git import get_repo_root
+            from claudectl.core.git import get_repo_root
 
             target = get_repo_root()
 
