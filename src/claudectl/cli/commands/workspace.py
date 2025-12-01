@@ -14,14 +14,14 @@ import typer
 from claudectl.cli.output import Result, is_json_output, output, print_table
 from claudectl.core.git import NotInGitRepoError
 from claudectl.operations.context import copy_claude_context
+from claudectl.operations.spawn import spawn_claude_in_shell
 from claudectl.operations.workspace_ops import (
     BranchInUseError,
     WorkspaceError,
     WorkspaceExistsError,
+    WorkspaceManager,
     WorkspaceNotFoundError,
 )
-from claudectl.operations.spawn import spawn_claude_in_shell
-from claudectl.operations.workspace_ops import WorkspaceManager
 
 app = typer.Typer(
     name="workspace",
