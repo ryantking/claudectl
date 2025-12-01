@@ -234,7 +234,15 @@ class InitManager:
 
     def _track_result(self, results: dict[str, list[str]], file_result: FileResult) -> None:
         """Track file operation result."""
-        results[file_result.status].append(file_result.path)
+        # Map status to result key
+        status_map = {
+            "created": "installed",
+            "overwritten": "overwritten",
+            "skipped": "skipped",
+            "merged": "merged",
+        }
+        key = status_map.get(file_result.status, file_result.status)
+        results[key].append(file_result.path)
 
     def _build_message(self, results: dict[str, list[str]], verbose: bool) -> str:
         """Build user-facing message."""
