@@ -11,6 +11,7 @@ from typing import Annotated
 import typer
 
 from claudectl.cli.commands.hook import app as hook_app
+from claudectl.cli.commands.init import app as init_app
 from claudectl.cli.commands.workspace import app as workspace_app
 from claudectl.cli.output import CLIError, handle_exception, is_json_output, set_json_output
 
