@@ -50,25 +50,6 @@ clean:
 version:
     @uv version
 
-# Generate Homebrew formula from dependencies
-generate-formula version url="" sha256="":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "Exporting dependencies to requirements.txt..."
-    uv export --format requirements.txt --no-dev > /tmp/requirements.txt
-    echo "Generating Homebrew formula..."
-
-    # Build arguments for the script
-    if [ -z "{{url}}" ] || [ -z "{{sha256}}" ]; then
-        # Just version provided, use defaults
-        scripts/generate_formula.py /tmp/requirements.txt "{{version}}" > Formula/claudectl.rb
-    else
-        # Full parameters provided
-        scripts/generate_formula.py /tmp/requirements.txt "{{version}}" "{{url}}" "{{sha256}}" > Formula/claudectl.rb
-    fi
-
-    echo "✓ Formula generated at Formula/claudectl.rb"
-
 # Create a release (bump version, commit, tag, push)
 release bump:
     #!/usr/bin/env bash
