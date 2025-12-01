@@ -8,8 +8,8 @@ from typing import Annotated
 import typer
 
 from claudectl.cli.output import Result, output
-from claudectl.domain.exceptions import InitError, NotInGitRepoError
-from claudectl.operations.init_ops import InitManager
+from claudectl.core.git import NotInGitRepoError
+from claudectl.operations.init_ops import ImportDirNotFoundError, InitManager
 
 app = typer.Typer(
     name="init",
