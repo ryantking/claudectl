@@ -375,58 +375,62 @@ Example: "Implement authentication system"
 <!-- REPOSITORY_INDEX_START -->
 ### Repository Overview
 
-**claudectl** is a Python CLI tool that manages Claude Code configurations, hooks, and isolated workspaces using git worktrees. It enables parallel Claude Code sessions with automatic git integration and context awareness.
+**claudectl** is a CLI tool for managing Claude Code configurations and workspaces, built with Python 3.13+, Typer, and GitPython.
 
-**Key Technologies:**
-- Python 3.13+ with modern tooling (uv, ruff, basedpyright)
-- Typer (CLI framework)
-- GitPython (git operations)
-- Docker SDK
+### Main Purpose
+- Manages Claude Code workspaces (git worktree wrappers)
+- Provides hooks for context injection and auto-commit functionality
+- Initializes repositories with Claude Code configurations
+- Orchestrates git workflows for AI-assisted development
+
+### Key Technologies
+- **Python 3.13+** with uv package manager
+- **Typer** for CLI framework
+- **GitPython** for git operations
+- **Docker SDK** for container operations
+- **Ruff** for linting/formatting, **basedpyright** for type checking
 
 ### Directory Structure
-
 ```
 claudectl/
-├── src/claudectl/          # Main package
-│   ├── cli/                # CLI commands and output
-│   │   ├── commands/       # Command implementations (workspace, hook, init)
-│   │   └── main.py         # Entry point
-│   ├── domain/             # Domain models (git, workspace, exceptions)
-│   ├── operations/         # Business logic (workspace ops, context, MCP config, init)
-│   ├── lib/                # Legacy code location (being migrated)
-│   └── templates/          # Templates (skills, configs)
-├── hack/                   # Build scripts and utilities
-├── tests/                  # Test suite (pytest)
-└── .claude/               # Claude Code configuration
-    ├── agents/            # Agent definitions (historian, researcher, engineer)
-    └── research/          # Research notes
+├── src/claudectl/
+│   ├── cli/              # CLI interface and commands
+│   │   ├── commands/     # hook, workspace, init subcommands
+│   │   └── main.py       # Entry point
+│   ├── core/             # Core functionality
+│   │   ├── git.py        # Git operations
+│   │   └── workspaces.py # Workspace management
+│   ├── operations/       # Business logic
+│   │   ├── context.py    # Context injection
+│   │   ├── init_ops.py   # Repository initialization
+│   │   ├── workspace_ops.py
+│   │   └── spawn.py      # Process spawning
+│   └── templates/        # Project templates
+├── hack/                 # Build/config scripts
+├── .claude/             # Claude Code configuration
+└── justfile             # Task automation
 ```
 
-### Entry Points
+### Entry Point
+- **CLI**: `claudectl` command (installed via `project.scripts` in pyproject.toml:29)
+- **Main file**: src/claudectl/cli/main.py:128
 
-- **CLI:** `claudectl` command (via `src/claudectl/cli/main.py:main`)
-- **Main commands:** workspace management, hooks, initialization
-
-### Build & Run Commands
-
+### Build/Run Commands (from justfile)
 ```bash
-# Development
-just install          # Install editable with uv tool
-just lint            # Run ruff + basedpyright
-just format          # Format and fix code
-just test            # Run pytest with coverage
-just ci              # Run all checks
-
-# Build & Release
-just build           # Build distribution package
-just release <bump>  # Bump version and create tag
-just clean           # Remove build artifacts
+just install      # Install globally in editable mode
+just lint         # Run ruff + basedpyright checks
+just format       # Format code with ruff
+just test         # Run pytest with coverage
+just ci           # Run lint + test
+just build        # Build distributable package
+just clean        # Remove build artifacts
+just release X    # Bump version (X = major|minor|patch)
 ```
 
-### Key Features
-
-- **Workspace Management:** Git worktree-based isolated environments
-- **Hook Integration:** Auto-commit, context injection, notifications
-- **Context Awareness:** Injects live git/workspace status into Claude prompts
-- **macOS Notifications:** Event notifications for Claude Code operations
+### Available Subcommands
+- `claudectl hook` - Manage Claude Code hooks (context injection, auto-commit)
+- `claudectl workspace` - Create/delete/list git worktrees
+- `claudectl init` - Initialize repositories with Claude configurations
+- `claudectl version` - Show version
+- `claudectl status` - Show Claude Code installation status
 <!-- REPOSITORY_INDEX_END -->
