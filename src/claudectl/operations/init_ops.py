@@ -95,12 +95,6 @@ class InitManager:
         )
         self._track_result(results, mcp_result)
 
-        # Track MCP warnings if any
-        if mcp_result.warnings:
-            if "warnings" not in results:
-                results["warnings"] = []
-            results["warnings"].extend(mcp_result.warnings)
-
         # 6. Index repository with claude CLI
         if not skip_index:
             index_result = self._index_repository()
