@@ -68,8 +68,7 @@ def spawn_claude_in_shell(working_dir: str | Path | None = None) -> SpawnedProce
         return process
     except FileNotFoundError as e:
         raise OSError(
-            "Failed to spawn Claude: command not found. "
-            "Ensure 'claude' is installed and in your PATH."
+            "Failed to spawn Claude: command not found. Ensure 'claude' is installed and in your PATH."
         ) from e
     except OSError as e:
         raise OSError(f"Failed to spawn Claude: {e}") from e

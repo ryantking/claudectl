@@ -322,10 +322,11 @@ def _extract_final_response(transcript_path: str, max_length: int = 200) -> str 
             first_line = text.split("\n")[0]
             # Strip markdown formatting (bold, italic, code)
             import re
-            first_line = re.sub(r'\*\*(.+?)\*\*', r'\1', first_line)  # **bold**
-            first_line = re.sub(r'\*(.+?)\*', r'\1', first_line)      # *italic*
-            first_line = re.sub(r'`(.+?)`', r'\1', first_line)        # `code`
-            first_line = re.sub(r'^#+\s*', '', first_line)            # # headers
+
+            first_line = re.sub(r"\*\*(.+?)\*\*", r"\1", first_line)  # **bold**
+            first_line = re.sub(r"\*(.+?)\*", r"\1", first_line)  # *italic*
+            first_line = re.sub(r"`(.+?)`", r"\1", first_line)  # `code`
+            first_line = re.sub(r"^#+\s*", "", first_line)  # # headers
             if len(first_line) > max_length:
                 return first_line[: max_length - 3] + "..."
             return first_line
@@ -346,10 +347,14 @@ def _send_notification(
     if _has_terminal_notifier():
         cmd = [
             "terminal-notifier",
-            "-title", title,
-            "-subtitle", subtitle,
-            "-message", message,
-            "-sender", CLAUDE_SENDER,
+            "-title",
+            title,
+            "-subtitle",
+            subtitle,
+            "-message",
+            message,
+            "-sender",
+            CLAUDE_SENDER,
         ]
         if sound:
             cmd.extend(["-sound", sound])
@@ -574,10 +579,22 @@ def _get_directory_snapshot(max_files: int = 20) -> list[str]:
 
     # Priority patterns for important files
     priority_patterns = [
-        "*.py", "*.ts", "*.tsx", "*.js", "*.jsx",
-        "*.go", "*.rs", "*.rb", "*.java",
-        "Makefile", "justfile", "package.json", "pyproject.toml",
-        "Cargo.toml", "go.mod", "Gemfile",
+        "*.py",
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx",
+        "*.go",
+        "*.rs",
+        "*.rb",
+        "*.java",
+        "Makefile",
+        "justfile",
+        "package.json",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "Gemfile",
     ]
 
     # Collect files by priority
@@ -700,7 +717,7 @@ def context_info() -> None:
     current_ws = _get_current_workspace(cwd)
     if current_ws:
         ws_line = f"Current Workspace: {current_ws.get('branch', 'unknown')}"
-        if current_ws.get('status'):
+        if current_ws.get("status"):
             ws_line += f" ({current_ws['status']})"
         lines.append(ws_line)
 
@@ -726,7 +743,7 @@ def context_info() -> None:
         lines.append("Workspaces:")
         for ws in workspaces:
             ws_line = f"  {ws.get('branch', 'unknown')}"
-            if ws.get('status'):
+            if ws.get("status"):
                 ws_line += f" ({ws['status']})"
             lines.append(ws_line)
 
@@ -756,5 +773,3 @@ def context_info() -> None:
     # Output as plain text - this gets injected as additionalContext
     print("\n".join(lines))
     raise typer.Exit(0)
-
-

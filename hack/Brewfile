@@ -5,6 +5,8 @@ cask "claude-code"
 # Dev tools
 brew "git"
 brew "gh"
+brew "delta"
+brew "riff"
 brew "uv"
 brew "ripgrep"
 brew "lefthook"

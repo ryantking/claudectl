@@ -43,7 +43,4 @@ class ImportDirNotFoundError(InitError):
     """Raised when import directory cannot be found."""
 
     def __init__(self) -> None:
-        super().__init__(
-            "Import directory not found. "
-            "This may indicate a corrupted installation."
-        )
+        super().__init__("Import directory not found. This may indicate a corrupted installation.")

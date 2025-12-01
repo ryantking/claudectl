@@ -226,15 +226,9 @@ class InitManager:
         # New MCP servers to add
         new_servers = {
             # Context7 automatically loads CONTEXT7_API_KEY from environment
-            "context7": {
-                "type": "http",
-                "url": "https://mcp.context7.com/mcp"
-            },
+            "context7": {"type": "http", "url": "https://mcp.context7.com/mcp"},
             # Linear with SSE transport
-            "linear": {
-                "type": "sse",
-                "url": "https://mcp.linear.app/sse"
-            }
+            "linear": {"type": "sse", "url": "https://mcp.linear.app/sse"},
         }
 
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -292,7 +286,8 @@ Format as clean markdown starting at heading level 3 (###), keep it brief (under
                 [
                     "claude",
                     "--print",
-                    "--output-format", "text",
+                    "--output-format",
+                    "text",
                     prompt,
                 ],
                 cwd=self.target,
@@ -329,13 +324,9 @@ Format as clean markdown starting at heading level 3 (###), keep it brief (under
         start_idx = content.find(start_marker) + len(start_marker)
         end_idx = content.find(end_marker)
 
-        updated_content = (
-            content[:start_idx] +
-            "\n" + index_content + "\n" +
-            content[end_idx:]
-        )
+        updated_content = content[:start_idx] + "\n" + index_content + "\n" + content[end_idx:]
 
-        with open(claude_md_path, 'w') as f:
+        with open(claude_md_path, "w") as f:
             f.write(updated_content)
 
         return True

@@ -62,8 +62,6 @@ def main_callback(
     set_json_output(json_output)
 
 
-
-
 def get_claude_info() -> tuple[bool, str | None, str | None]:
     """Get Claude Code installation info."""
     claude_path = shutil.which("claude")
@@ -125,8 +123,6 @@ def _print_status(info: StatusInfo) -> None:
         typer.echo("  Status:   ", nl=False)
         typer.secho("not installed", fg=typer.colors.RED)
     typer.echo()
-
-
 
 
 def main() -> None:

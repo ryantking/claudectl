@@ -4,10 +4,11 @@ default:
 
 # Install system dependencies from Brewfile
 deps:
-    brew bundle --no-upgrade --file=import/Brewfile
+    brew bundle --no-upgrade --file=hack/Brewfile
+    gh extension install dlvhdr/gh-dash
 
 # Install claudectl globally in editable mode
-install: deps
+install:
     uv tool install --force --editable .
 
 # Run linter checks

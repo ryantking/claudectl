@@ -97,9 +97,7 @@ class WorkspaceManager:
         # Check if branch is already checked out in another worktree
         existing = find_workspace_by_branch(branch, self.repo_root)
         if existing:
-            raise BranchInUseError(
-                f"Branch '{branch}' is already checked out at: {existing.path}"
-            )
+            raise BranchInUseError(f"Branch '{branch}' is already checked out at: {existing.path}")
 
         # Create parent directory
         workspace_path.parent.mkdir(parents=True, exist_ok=True)
@@ -171,9 +169,7 @@ class WorkspaceManager:
         if not force:
             is_clean, status = workspace.is_clean
             if not is_clean:
-                raise WorkspaceError(
-                    f"Workspace has uncommitted changes ({status}). Use --force to remove anyway."
-                )
+                raise WorkspaceError(f"Workspace has uncommitted changes ({status}). Use --force to remove anyway.")
 
         cmd = [
             "git",
@@ -276,9 +272,7 @@ class WorkspaceManager:
             "ahead_behind": ahead_behind,
         }
 
-    def get_workspace_diff(
-        self, workspace: Workspace, target_branch: str = "main"
-    ) -> str:
+    def get_workspace_diff(self, workspace: Workspace, target_branch: str = "main") -> str:
         """Get git diff from workspace to target branch.
 
         Args:
