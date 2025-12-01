@@ -227,33 +227,48 @@ class InitManager:
         if dest.exists() and not force:
             return FileResult(str(dest.relative_to(self.target)), "skipped")
 
-        # Build MCP configuration
-        mcp_config = {
-            "mcpServers": {
-                # Context7 automatically loads CONTEXT7_API_KEY from environment
-                "context7": {
-                    "type": "http",
-                    "url": "https://mcp.context7.com/mcp"
-                },
-                # Linear with SSE transport
-                "linear": {
-                    "type": "sse",
-                    "url": "https://mcp.linear.app/sse"
-                }
+        # New MCP servers to add
+        new_servers = {
+            # Context7 automatically loads CONTEXT7_API_KEY from environment
+            "context7": {
+                "type": "http",
+                "url": "https://mcp.context7.com/mcp"
+            },
+            # Linear with SSE transport
+            "linear": {
+                "type": "sse",
+                "url": "https://mcp.linear.app/sse"
             }
         }
 
-        # Write MCP configuration
         dest.parent.mkdir(parents=True, exist_ok=True)
 
-        # Determine status before writing
-        file_existed = dest.exists()
+        # Load existing config or create new one
+        if dest.exists() and not force:
+            with open(dest) as f:
+                existing_config = json.load(f)
 
+            # Ensure mcpServers key exists
+            if "mcpServers" not in existing_config:
+                existing_config["mcpServers"] = {}
+
+            # Merge new servers (don't overwrite existing ones)
+            for server_name, server_config in new_servers.items():
+                if server_name not in existing_config["mcpServers"]:
+                    existing_config["mcpServers"][server_name] = server_config
+
+            mcp_config = existing_config
+            status = "merged"
+        else:
+            # Create new config
+            mcp_config = {"mcpServers": new_servers}
+            status = "overwritten" if dest.exists() else "created"
+
+        # Write MCP configuration
         with open(dest, "w") as f:
             json.dump(mcp_config, f, indent=2)
             f.write("\n")  # Add trailing newline
 
-        status = "overwritten" if file_existed else "created"
         return FileResult(str(dest.relative_to(self.target)), status)
 
     def _index_repository(self) -> bool:
