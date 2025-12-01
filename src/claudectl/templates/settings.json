@@ -16,7 +16,7 @@
   "permissions": {
     "allow": [
       "Edit",
-      "Write"
+      "Write",
       "WebSearch",
       "WebFetch",
       "Bash(git:*)",
