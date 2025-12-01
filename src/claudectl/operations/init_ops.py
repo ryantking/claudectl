@@ -223,10 +223,6 @@ class InitManager:
         force: bool,
     ) -> FileResult:
         """Configure MCP servers (.mcp.json) with Context7 and Linear."""
-        # Check if file exists and we shouldn't force
-        if dest.exists() and not force:
-            return FileResult(str(dest.relative_to(self.target)), "skipped")
-
         # New MCP servers to add
         new_servers = {
             # Context7 automatically loads CONTEXT7_API_KEY from environment
@@ -243,7 +239,7 @@ class InitManager:
 
         dest.parent.mkdir(parents=True, exist_ok=True)
 
-        # Load existing config or create new one
+        # Load existing config and merge, or create new one
         if dest.exists() and not force:
             with open(dest) as f:
                 existing_config = json.load(f)
@@ -253,14 +249,20 @@ class InitManager:
                 existing_config["mcpServers"] = {}
 
             # Merge new servers (don't overwrite existing ones)
+            added_any = False
             for server_name, server_config in new_servers.items():
                 if server_name not in existing_config["mcpServers"]:
                     existing_config["mcpServers"][server_name] = server_config
+                    added_any = True
+
+            # If no new servers were added, skip
+            if not added_any:
+                return FileResult(str(dest.relative_to(self.target)), "skipped")
 
             mcp_config = existing_config
             status = "merged"
         else:
-            # Create new config
+            # Create new config or force overwrite
             mcp_config = {"mcpServers": new_servers}
             status = "overwritten" if dest.exists() else "created"
 
