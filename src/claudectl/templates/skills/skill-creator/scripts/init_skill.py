@@ -50,7 +50,8 @@ description: [TODO: Complete and informative explanation of what the skill does 
 - Example: Product Management with "Core Capabilities" → numbered capability list
 - Structure: ## Overview → ## Core Capabilities → ### 1. Feature → ### 2. Feature...
 
-Patterns can be mixed and matched as needed. Most skills combine patterns (e.g., start with task-based, add workflow for complex operations).
+Patterns can be mixed and matched as needed. Most skills combine
+patterns (e.g., start with task-based, add workflow for complex operations).
 
 Delete this entire "Structuring This Skill" section when done - it's just guidance.]
 
