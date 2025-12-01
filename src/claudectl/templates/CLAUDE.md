@@ -367,7 +367,11 @@ Example: "Implement authentication system"
 - **Max 10 concurrent agents** across all waves
 - **Pass full context** between agents (agents are stateless)
 - **Agents read from** `.claude/research/` (relative path, local to working directory) for cached knowledge
-- **Plan agent manages plan files** - use EnterPlanMode and ExitPlanMode, do not manually write to ~/.claude/plans/
+- **Plan agents via Task tool** - spawn Plan subagents with `subagent_type="Plan"` for analysis
+- **Main agent writes plans** - after receiving Plan subagent output, write to `.claude/plans/<filename>.md`
+- **Plans tracked in VCS** - `.claude/plans/` directory (local repo) allows version control of planning artifacts
+- **Engineer agents read plans** - they expect plans at `.claude/plans/<filename>.md` during implementation
+- **Plan Mode is optional** - toggle with Shift+Tab for manual read-only exploration if desired
 - **Use relative paths** for files in working directory (known via `<context-refresh>`)
 - **Use absolute paths** only when accessing files outside working directory
 - **Don't skip Wave 1** for non-trivial tasks (need codebase context)
