@@ -53,7 +53,7 @@ class InitManager:
 
         # 1. Install CLAUDE.md
         claude_md = self._install_file(
-            self.import_dir / "CLAUDE.md",
+            self.template_dir / "CLAUDE.md",
             self.target / "CLAUDE.md",
             force,
         )
@@ -61,7 +61,7 @@ class InitManager:
 
         # 2. Install agents
         agents_results = self._install_directory(
-            self.import_dir / "agents",
+            self.template_dir / "agents",
             self.target / ".claude" / "agents",
             force,
             pattern="*.md",
@@ -71,7 +71,7 @@ class InitManager:
 
         # 3. Install skills
         skills_results = self._install_directory(
-            self.import_dir / "skills",
+            self.template_dir / "skills",
             self.target / ".claude" / "skills",
             force,
             recursive=True,
@@ -81,7 +81,7 @@ class InitManager:
 
         # 4. Merge settings
         settings_result = self._merge_settings(
-            self.import_dir / "settings.json",
+            self.template_dir / "settings.json",
             self.target / ".claude" / "settings.json",
             force,
         )
