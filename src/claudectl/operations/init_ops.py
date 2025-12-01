@@ -284,23 +284,36 @@ class InitManager:
         return result
 
     def _index_repository(self) -> bool:
-        """Use claude CLI to enhance CLAUDE.md with repo context."""
-        # Check if claude CLI is available
+        """Generate repository index using Claude CLI with prompt."""
         if not shutil.which("claude"):
             return False
 
+        prompt = """Analyze this repository and provide a concise overview:
+- Main purpose and key technologies
+- Directory structure (2-3 levels max)
+- Entry points and main files
+- Build/run commands if applicable
+
+Format as clean markdown, keep it brief (under 500 words)."""
+
         try:
-            # Run: claude repo index (or equivalent command)
-            # This will update CLAUDE.md with repository context
             result = subprocess.run(
-                ["claude", "repo", "index"],
+                [
+                    "claude",
+                    "--print",
+                    "--output-format", "text",
+                    prompt,
+                ],
                 cwd=self.target,
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=90,
                 check=False,
             )
-            return result.returncode == 0
+
+            if result.returncode == 0 and result.stdout.strip():
+                return self._insert_repository_index(result.stdout.strip())
+            return False
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
