@@ -222,6 +222,62 @@ class InitManager:
             "merged",
         )
 
+    def _configure_mcp(
+        self,
+        dest: Path,
+        force: bool,
+    ) -> FileResult:
+        """Configure MCP servers (.mcp.json) with Context7 and Linear."""
+        import os
+
+        # Check if file exists and we shouldn't force
+        if dest.exists() and not force:
+            return FileResult(str(dest.relative_to(self.target)), "skipped")
+
+        # Build MCP configuration
+        mcp_config = {"mcpServers": {}}
+
+        # Add Context7 MCP with HTTP transport
+        context7_api_key = os.environ.get("CONTEXT7_API_KEY", "")
+        if context7_api_key:
+            mcp_config["mcpServers"]["context7"] = {
+                "type": "http",
+                "url": "https://mcp.context7.com/mcp",
+                "headers": {
+                    "CONTEXT7_API_KEY": context7_api_key
+                }
+            }
+        else:
+            # Configure without API key but add a warning
+            mcp_config["mcpServers"]["context7"] = {
+                "type": "http",
+                "url": "https://mcp.context7.com/mcp"
+            }
+            # Store warning to show to user
+            result = FileResult(str(dest.relative_to(self.target)), "created")
+            result.warnings = ["Context7 configured without API key (CONTEXT7_API_KEY not found in environment)"]
+
+        # Add Linear MCP with SSE transport
+        mcp_config["mcpServers"]["linear"] = {
+            "type": "sse",
+            "url": "https://mcp.linear.app/sse"
+        }
+
+        # Write MCP configuration
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest, "w") as f:
+            json.dump(mcp_config, f, indent=2)
+            f.write("\n")  # Add trailing newline
+
+        status = "overwritten" if dest.exists() else "created"
+        result = FileResult(str(dest.relative_to(self.target)), status)
+
+        # Add warning if no Context7 API key
+        if not context7_api_key:
+            result.warnings = ["Context7 configured without API key (CONTEXT7_API_KEY not found in environment)"]
+
+        return result
+
     def _index_repository(self) -> bool:
         """Use claude CLI to enhance CLAUDE.md with repo context."""
         # Check if claude CLI is available
