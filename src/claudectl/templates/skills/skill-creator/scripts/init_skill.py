@@ -88,7 +88,8 @@ Documentation and reference material intended to be loaded into context to infor
 - BigQuery: API reference documentation and query examples
 - Finance: Schema documentation, company policies
 
-**Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Claude should reference while working.
+**Appropriate for:** In-depth documentation, API references, database schemas,
+comprehensive guides, or any detailed information that Claude should reference while working.
 
 ### assets/
 Files not intended to be loaded into context, but rather used within the output Claude produces.
