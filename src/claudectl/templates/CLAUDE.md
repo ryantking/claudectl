@@ -349,11 +349,14 @@ Example: "Implement authentication system"
     - Write findings to `.claude/research/<date>-<topic>.md` (relative path in working directory)
     - Can run parallel to historian
 
-3. **Planning Phase**
-    - Use EnterPlanMode to start planning for complex tasks
-    - Plan agent receives findings from Discovery and Research phases
-    - Plan agent handles writing plan file automatically - do not manually write to ~/.claude/plans/
-    - Use ExitPlanMode when plan is ready for user review and approval
+3. **Planning Phase** (when needed for complex tasks)
+    - Spawn Plan agent(s) explicitly via Task tool: `subagent_type="Plan"`
+    - Provide context from Discovery and Research phases to each Plan agent
+    - Plan agent(s) conduct read-only analysis and return recommendations as text
+    - Main agent synthesizes findings from multiple Plan agents (if used)
+    - Main agent writes consolidated plan to `.claude/plans/<filename>.md` for VCS tracking
+    - Engineer agents later read from `.claude/plans/` during implementation
+    - Can spawn multiple Plan agents for different perspectives on complex problems
 
 4. **Implementation Phase** (Wave 3)
     - Use engineer agent to implement code changes from approved plan
