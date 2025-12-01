@@ -43,6 +43,7 @@ app = typer.Typer(
 
 # Register subcommands
 app.add_typer(hook_app, name="hook")
+app.add_typer(init_app, name="init")
 app.add_typer(workspace_app, name="workspace")
 
 
