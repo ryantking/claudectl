@@ -52,7 +52,7 @@ These are global guidelines to ALWAYS take into account when answering user quer
 
 23. **Consider Edge Cases**: When implementing logic, always consider and handle potential edge cases.
 
-24. **Use Working Directory**: When reading files, implementing changes, and running commands always use paths relevant to the current directory unless explicitly required to use a file outside the repo.
+24. **Use Working Directory**: When reading files, implementing changes, and running commands always use paths relevant to the current directory unless explicitly required to use a file outside the repo. For temporary files, use `.claude/scratch/` within the working directory instead of `/tmp`.
 
 ## Tool Selection Guidelines
 
