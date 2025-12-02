@@ -78,9 +78,93 @@ The template is missing critical guidance from Claude's own system prompt:
 
 ## Solution Design
 
-### Three-Pronged Approach
+### Updated Four-Pronged Approach
 
-#### 1. Update CLAUDE.md Template with Explicit Guidance
+The solution must address BOTH chaining (primary) and /tmp usage (secondary):
+
+#### 1. **[CRITICAL]** Add Bash Command Chaining Guidance to CLAUDE.md
+
+**Priority:** HIGHEST - This is the root cause of most permission prompts
+
+**Location:** `src/claudectl/templates/CLAUDE.md`
+
+**Add New Section After Line 88**: "Bash Command Sequencing"
+
+```markdown
+### Bash Command Sequencing
+
+**CRITICAL**: Chained bash commands break permission matching and trigger prompts.
+
+#### When to Use Multiple Tool Calls (Preferred)
+
+Use **separate parallel Bash tool calls** for independent operations:
+
+✅ **DO THIS:**
+```
+Tool Call 1: Bash(git status)
+Tool Call 2: Bash(git diff HEAD)
+Tool Call 3: Bash(git log --oneline -5)
+```
+
+**Why:** Each command matches pre-approved patterns independently. Zero prompts.
+
+❌ **DON'T DO THIS:**
+```
+Bash(git status && git diff HEAD && git log --oneline -5)
+```
+
+**Why:** Chained command doesn't match `Bash(git status:*)` pattern. Triggers prompt.
+
+#### When Chaining is Acceptable
+
+Use `&&` chaining ONLY when commands are **dependent** (later commands need earlier ones to succeed):
+
+✅ **Acceptable chains:**
+- `mkdir -p dir && cp file dir/` (cp depends on dir existing)
+- `git add . && git commit -m "msg" && git push` (each depends on previous)
+- `cd /path && npm install` (npm needs to be in /path)
+
+✅ **Even better - use single commands when possible:**
+- `cp file dir/` (cp creates parent dirs with `mkdir -p` equivalent behavior in many cases)
+- Just use absolute paths: `npm install --prefix /path`
+
+#### Operator Reference
+
+| Operator | Meaning | When to Use | Example |
+|----------|---------|-------------|---------|
+| `&&` | AND (run next if previous succeeds) | Dependent sequence | `mkdir dir && cd dir` |
+| `\|\|` | OR (run next if previous fails) | Fallback behavior | `npm ci \|\| npm install` |
+| `;` | Sequential (run regardless) | Rarely needed | Avoid - use separate calls |
+| `\|` | Pipe (send output to next) | Data transformation | When specialized tools can't help |
+
+**General Rule:** If commands don't depend on each other, split into multiple tool calls.
+```
+
+**Add to Anti-Patterns Section (Lines 90-102):**
+
+```markdown
+❌ **DON'T**: Chain independent commands
+```
+Bash(pytest tests/ && npm run lint && docker ps)
+```
+✅ **DO**: Make parallel tool calls
+```
+Tool Call 1: Bash(pytest tests/)
+Tool Call 2: Bash(npm run lint)
+Tool Call 3: Bash(docker ps)
+```
+
+❌ **DON'T**: Chain for exploration
+```
+Bash(find . -name "*.py" | xargs grep "pattern" | sort)
+```
+✅ **DO**: Use specialized tools
+```
+Grep(pattern="pattern", glob="**/*.py", output_mode="content")
+```
+```
+
+#### 2. Update CLAUDE.md Template with Temp Directory Guidance
 
 **Location**: `src/claudectl/templates/CLAUDE.md`
 
