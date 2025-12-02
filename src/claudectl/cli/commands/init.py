@@ -46,14 +46,6 @@ def init(
             help="Skip Claude CLI repository indexing",
         ),
     ] = False,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Show detailed file operations",
-        ),
-    ] = False,
 ) -> None:
     """Initialize Claude Code configuration.
 
@@ -64,7 +56,7 @@ def init(
         claudectl init
         claudectl init --global
         claudectl init --force
-        claudectl init --no-index --verbose
+        claudectl init --no-index
     """
     # Skip if subcommand invoked
     if ctx.invoked_subcommand is not None:
@@ -84,15 +76,11 @@ def init(
 
         # Run initialization with progress updates
         manager = InitManager(target)
-        result = manager.install(
+        manager.install(
             force=force,
             skip_index=no_index or global_install,
-            verbose=verbose,
             console=console,
         )
-
-        # Output result
-        output(result)
 
     except NotInGitRepoError as e:
         # Suggest --global if not in repo
