@@ -168,6 +168,26 @@ Use these alternatives instead:
 
 ### Anti-Patterns (Will Trigger Permission Prompts)
 
+❌ **DON'T**: Chain independent commands
+```
+Bash(pytest tests/ && npm run lint && docker ps)
+```
+✅ **DO**: Make parallel tool calls
+```
+Tool Call 1: Bash(pytest tests/)
+Tool Call 2: Bash(npm run lint)
+Tool Call 3: Bash(docker ps)
+```
+
+❌ **DON'T**: Use /tmp with bash commands
+```
+Bash(mkdir /tmp/test-run && python test.py > /tmp/test-run/output.txt)
+```
+✅ **DO**: Use project-local scratch directory
+```
+Bash(mkdir .claude/scratch/test-run && python test.py > .claude/scratch/test-run/output.txt)
+```
+
 ❌ **DON'T**: `find . -name "*.py" | xargs grep "pattern"`
 ✅ **DO**: `Grep(pattern="pattern", glob="**/*.py")`
 
