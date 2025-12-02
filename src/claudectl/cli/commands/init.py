@@ -79,15 +79,26 @@ def init(
 
             target = get_repo_root()
 
-        # Run initialization
+        # Setup rich console and status spinner
+        console = Console()
+        status = Status("Initializing...", console=console, spinner="dots")
+        status.start()
+
+        def update_progress(message: str) -> None:
+            """Update status message."""
+            status.update(message)
+
+        # Run initialization with progress updates
         manager = InitManager(target)
         result = manager.install(
             force=force,
             skip_index=no_index or global_install,
             verbose=verbose,
+            progress_callback=update_progress,
         )
 
-        # Output result
+        # Stop spinner and output result
+        status.stop()
         output(result)
 
     except NotInGitRepoError as e:
