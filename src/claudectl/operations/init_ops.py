@@ -51,6 +51,7 @@ class InitManager:
         force: bool = False,
         skip_index: bool = False,
         verbose: bool = False,
+        progress_callback: ProgressCallback | None = None,
     ) -> Result:
         """Execute full initialization."""
         results: dict[str, list[str]] = {
@@ -60,7 +61,12 @@ class InitManager:
             "merged": [],
         }
 
+        def _progress(message: str) -> None:
+            if progress_callback:
+                progress_callback(message)
+
         # 1. Install CLAUDE.md
+        _progress("Installing CLAUDE.md")
         claude_md = self._install_file(
             self.template_dir / "CLAUDE.md",
             self.target / "CLAUDE.md",
@@ -69,6 +75,7 @@ class InitManager:
         self._track_result(results, claude_md)
 
         # 2. Install agents
+        _progress("Installing agents")
         agents_results = self._install_directory(
             self.template_dir / "agents",
             self.target / ".claude" / "agents",
@@ -77,8 +84,10 @@ class InitManager:
         )
         for r in agents_results:
             self._track_result(results, r)
+        _progress(f"Installed {len(agents_results)} agent(s)")
 
         # 3. Install skills
+        _progress("Installing skills")
         skills_results = self._install_directory(
             self.template_dir / "skills",
             self.target / ".claude" / "skills",
@@ -87,8 +96,10 @@ class InitManager:
         )
         for r in skills_results:
             self._track_result(results, r)
+        _progress(f"Installed {len(skills_results)} skill(s)")
 
         # 4. Merge settings
+        _progress("Merging settings.json")
         settings_result = self._merge_settings(
             self.template_dir / "settings.json",
             self.target / ".claude" / "settings.json",
@@ -97,6 +108,7 @@ class InitManager:
         self._track_result(results, settings_result)
 
         # 5. Configure MCP servers
+        _progress("Configuring MCP servers")
         mcp_result = self._configure_mcp(
             self.target / ".mcp.json",
             force,
@@ -105,6 +117,7 @@ class InitManager:
 
         # 6. Index repository with claude CLI
         if not skip_index:
+            _progress("Indexing repository with Claude CLI")
             index_result = self._index_repository()
             if verbose and index_result:
                 results["indexed"] = ["CLAUDE.md"]
