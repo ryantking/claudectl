@@ -368,9 +368,10 @@ This pre-approves common safe operations in `.claude/` directories.
 **File**: `CLAUDE.md` (in fix-tmp-madness workspace)
 
 **Tasks**:
-1. Apply same changes as template
+1. Apply same changes as template (both Phase 1 and Phase 2)
 2. Test with actual agent workflows
 3. Validate prompt reduction
+4. Measure: Count prompts before/after for common operations
 
 ### Phase 5: Optional Enhancements
 
