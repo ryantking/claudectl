@@ -54,6 +54,71 @@ These are global guidelines to ALWAYS take into account when answering user quer
 
 24. **Use Working Directory**: When reading files, implementing changes, and running commands always use paths relevant to the current directory unless explicitly required to use a file outside the repo.
 
+## Tool Selection Guidelines
+
+**APPLIES TO**: Main agent AND all subagents (Explore, Plan, engineer, historian, researcher)
+
+### Mandatory Tool Preferences (Reduce Permission Prompts)
+
+Claude Code provides specialized tools that are pre-approved and don't require permission prompts. **Always prefer these over Bash commands** when possible:
+
+1. **File Reading** → Use `Read` tool
+   - Replaces: `cat`, `head`, `tail`, `less`
+   - Supports: line ranges, images, PDFs, notebooks
+   - Example: `Read(file_path="src/main.py", offset=50, limit=100)`
+
+2. **Content Search** → Use `Grep` tool
+   - Replaces: `grep`, `rg`, `ag`, `ack`
+   - Supports: regex, context lines, multiline, file type filtering
+   - Example: `Grep(pattern="def .*:", type="py", output_mode="content", -A=2)`
+
+3. **File Finding** → Use `Glob` tool
+   - Replaces: `find`, `ls` with patterns
+   - Supports: recursive wildcards, multiple extensions
+   - Example: `Glob(pattern="**/*.{py,pyx}")`
+
+### When Bash is Acceptable
+
+Use Bash ONLY for operations that have no tool equivalent:
+
+- **Git operations**: `git log`, `git show`, `git blame`, `git diff`
+- **Multi-stage pipelines**: When you need `|`, `xargs`, `sort`, `uniq`
+- **Process output**: `npm list`, `docker ps`, package manager queries
+- **File metadata**: File sizes, permissions (when content isn't enough)
+- **Simple directory listing**: `ls`, `ls -la` (for basic overview)
+
+### Anti-Patterns (Will Trigger Permission Prompts)
+
+❌ **DON'T**: `find . -name "*.py" | xargs grep "pattern"`
+✅ **DO**: `Grep(pattern="pattern", glob="**/*.py")`
+
+❌ **DON'T**: `cat src/main.py | grep "import"`
+✅ **DO**: `Grep(pattern="import", path="src/main.py")`
+
+❌ **DON'T**: `find . -name "*.js" -type f`
+✅ **DO**: `Glob(pattern="**/*.js")`
+
+❌ **DON'T**: `head -50 README.md`
+✅ **DO**: `Read(file_path="README.md", limit=50)`
+
+### Why This Matters
+
+- Specialized tools are **pre-approved** in settings.json → no permission prompts
+- Bash commands use **prefix matching only** → hard to pre-approve complex patterns
+- Complex one-liners (`find | xargs | grep | sort`) are impossible to pre-approve
+- Each unique Bash variant requires a new permission prompt
+
+### Tool Capability Reference
+
+| Need | Tool | Bash Equivalent | Notes |
+|------|------|----------------|-------|
+| Find files by name | `Glob(pattern="**/*.py")` | `find . -name "*.py"` | Faster, cleaner |
+| Search in files | `Grep(pattern="TODO", glob="**/*")` | `grep -r "TODO" .` | Supports context, counts |
+| Read file | `Read(file_path="file.txt")` | `cat file.txt` | Supports ranges, images |
+| Git history | `Bash(git log --oneline)` | N/A | No tool equivalent |
+| Count matches | `Grep(pattern="error", output_mode="count")` | `grep -c "error"` | Built-in counting |
+| Multi-line search | `Grep(pattern="class.*:", multiline=True)` | Complex `grep` | Better than bash |
+
 ## Workspaces
 
 Workspaces allow multiple instances of Claude Code or other agents to run on the same repository at the same time. Workspaces are just a wrapper around git branches worktrees.
