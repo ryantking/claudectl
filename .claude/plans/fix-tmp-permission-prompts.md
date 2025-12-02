@@ -412,15 +412,37 @@ Total: 0 prompts (all pre-approved)
 
 ## Testing Plan
 
-1. **Apply changes to fix-tmp-madness workspace CLAUDE.md**
-2. **Test scenarios**:
+### Test Scenarios
+
+1. **Baseline Measurement (Before Fix)**:
+   - Ask agent to "check git status and show me recent changes"
+   - Count prompts (expected: 1-2 if chaining)
+
+2. **Apply Phase 1 Changes (Chaining Guidance)**:
+   - Update CLAUDE.md with bash sequencing section
+   - Repeat git status test
+   - Expected: 0 prompts (split into parallel calls)
+
+3. **Test Exploration Workflows**:
+   - Ask agent to "find all Python files and search for imports"
+   - Verify: Uses Grep tool instead of `find | xargs grep`
+   - Expected: 0 prompts
+
+4. **Test Temporary File Operations**:
    - Ask agent to "run a quick test and save results"
-   - Ask agent to "create a temporary file for testing"
-   - Ask agent to "profile the code performance"
-3. **Validate**:
-   - Count permission prompts (should be near zero)
-   - Verify agents use `.claude/scratch/` directory
-   - Check cleanup behavior
+   - Before Phase 2: May still use /tmp (1-2 prompts)
+   - After Phase 2: Uses .claude/scratch/ (0 prompts)
+
+5. **Test Dependent Operations**:
+   - Ask agent to "commit and push changes"
+   - Expected: 0 prompts (legitimate `git add && git commit && git push` chain)
+
+### Validation Criteria
+
+- **Phase 1 Success**: Independent commands split into parallel tool calls
+- **Phase 2 Success**: Agents use `.claude/scratch/` instead of `/tmp`
+- **Overall Success**: 80-95% reduction in permission prompts for common workflows
+- **No Regression**: Dependent chains (git workflows) still function correctly
 
 ## Rollout Strategy
 
