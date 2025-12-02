@@ -574,6 +574,9 @@ Example: "Implement authentication system"
 - **Plan Mode is optional** - toggle with Shift+Tab for manual read-only exploration if desired
 - **Use relative paths** for files in working directory (known via `<context-refresh>`)
 - **Use absolute paths** only when accessing files outside working directory
+- **Use `.claude/scratch/` for temp files** - avoid `/tmp` to reduce permission prompts
+- **Prefer parallel tool calls over chaining** - split independent bash commands to avoid permission prompts
+- **Clean up after yourself** - remove temporary artifacts when done
 - **Don't skip Wave 1** for non-trivial tasks (need codebase context)
 - **Wave 2 is conditional** (skip if no research/history needed)
 - **Always plan before Wave 3** for complex tasks
