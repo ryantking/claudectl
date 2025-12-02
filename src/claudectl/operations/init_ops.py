@@ -36,9 +36,9 @@ class InitManager:
 
     def install(
         self,
+        console: Console,
         force: bool = False,
         skip_index: bool = False,
-        console: Console,
     ) -> None:
         """Execute full initialization."""
         # 1. Install CLAUDE.md
