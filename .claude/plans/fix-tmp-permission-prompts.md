@@ -38,36 +38,43 @@ Agents default to using `/tmp` for temporary files, which:
 - No guidance on using project-local directories vs `/tmp`
 - Agents chain temp operations, combining both root causes
 
-## Root Cause Analysis
+## Deep Dive: Why Chaining Breaks Everything
 
-### Why /tmp Triggers So Many Prompts
+### The Permission Matching Algorithm
 
-1. **Bash vs Built-in Tools**: The permission system treats these differently:
-   - Built-in tools (Read, Grep, Glob): Permission-free within `additionalDirectories`
-   - Bash commands: Always require approval, even for `/tmp` operations
+Claude's bash permission system works as follows:
 
-2. **Prefix Matching Limitations**: Claude's bash approval uses exact prefix matching:
-   ```
-   mkdir /tmp/test-foo       # Prompt 1
-   echo "data" > /tmp/test-foo/file.txt  # Prompt 2
-   cat /tmp/test-foo/file.txt            # Prompt 3
-   rm -rf /tmp/test-foo                  # Prompt 4
-   ```
-   Each unique command is treated as a new permission request.
+1. **Extract command from tool call**: `Bash(command="git status && git diff")`
+2. **Check against approval patterns**: Does `"git status && git diff"` start with any approved prefix?
+3. **Literal string matching**: Patterns like `Bash(git status:*)` only match if the ENTIRE string starts with `git status`
+4. **Result**: `"git status && git diff"` does NOT match because of the `&& git diff` suffix
 
-3. **No Guidance in CLAUDE.md**: The template provides zero guidance about:
-   - Where to create temporary files
-   - When to use `/tmp` vs project-local directories
-   - How to avoid permission prompt cascades
-   - Best practices for temporary file management
+### Why Claude's Documentation Claims Don't Match Reality
 
-### Why This Happens
+Official documentation states:
+> "Claude Code is aware of shell operators (like &&) so a prefix match rule like `Bash(safe-cmd:*)` won't give it permission to run `safe-cmd && other-cmd`"
 
-From the research:
-- claudectl itself doesn't use `/tmp` in its source code
-- The CLAUDE.md template doesn't instruct agents on temp file practices
-- Agents default to standard Unix behavior (using `/tmp`)
-- The permission system can't distinguish "temporary testing operations" from "potentially dangerous operations"
+However, testing in GitHub Issue #4956 revealed:
+- **47-48 out of 52 bypass techniques still work** (97-100% success rate)
+- Shell operator awareness is insufficient to prevent misuse
+- The "safety" is in blocking approval, not in smart parsing
+
+**This means:** Chaining doesn't bypass security, but it DOES prevent pre-approval from working.
+
+### Current Guidance Gap in CLAUDE.md
+
+The template is missing critical guidance from Claude's own system prompt:
+
+**What Claude's System Prompt Says:**
+> "When issuing multiple commands: If the commands are independent and can run in parallel, make multiple Bash tool calls in a single message. If the commands depend on each other and must run sequentially, use a single Bash call with '&&' to chain them together."
+
+**What CLAUDE.md Says:**
+- ❌ No mention of when to chain vs split
+- ❌ No explanation of independent vs dependent commands
+- ❌ No guidance on parallel tool calls
+- ✅ Only 2 examples of `&&` usage (in git merge workflows) with no explanation
+
+**Result:** Agents don't know they're supposed to prefer multiple tool calls over chaining.
 
 ## Solution Design
 
