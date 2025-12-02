@@ -100,18 +100,17 @@ class InitManager:
         source: Path,
         dest: Path,
         force: bool,
-    ) -> FileResult:
+        console: Console,
+    ) -> None:
         """Install a single file."""
-        status = "created"
-        if dest.exists():
-            if not force:
-                return FileResult(str(dest.relative_to(self.target)), "skipped")
-            status = "overwritten"
+        if dest.exists() and not force:
+            console.print(f"  • {dest.relative_to(self.target)} (skipped)")
+            return
 
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, dest)
-
-        return FileResult(str(dest.relative_to(self.target)), status)
+        status = "overwritten" if dest.exists() else "created"
+        console.print(f"  • {dest.relative_to(self.target)} ({status})")
 
     def _install_directory(
         self,
