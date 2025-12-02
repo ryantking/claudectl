@@ -475,12 +475,18 @@ BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE, when used as a token in
    claudectl workspace delete <branch-name>
    ```
 7. Merge the pull request using gh CLI with squash merge:
+   - **IMPORTANT**: Commit message MUST use conventional commit format for the first line
+   - **IMPORTANT**: Body MUST contain actual detailed explanations, not placeholder text
+   - Describe specifically what changed and why, with real details from the PR
    ```bash
    gh pr merge <number> --squash --delete-branch --body "$(cat <<'EOF'
-   Detailed explanation of changes and reasoning.
+   feat(scope): actual description of changes
 
-   - Key change 1
-   - Key change 2
+   Specific explanation of what was changed and why this change matters.
+   Include actual reasoning behind the implementation choices.
+
+   - Actual key change 1 with context
+   - Actual key change 2 with context
 
    Co-Authored-By: Claude <noreply@anthropic.com>
    EOF
