@@ -372,13 +372,45 @@ BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE, when used as a token in
 
 ### Agent Selection
 
-| Task Type | Agent(s) | Execution | When to Use |
-|-----------|----------|-----------|------------|
-| Find files/code patterns | Explore | Single | "Where is X defined?", "Show structure of Y" |
-| Understand git history | historian | Single | "Why was this changed?", "How did this evolve?" |
-| External research | researcher | Parallel (3-5) | Web docs, API references, best practices |
-| Create implementation plan | Plan | Single/Multiple | Explicitly spawn via Task tool for thorough planning analysis |
-| Implement code changes | engineer | Single/Parallel | Code work, file modifications |
+| Task Type | Agent(s) | Execution | Primary Tools | When to Use |
+|-----------|----------|-----------|---------------|------------|
+| Find files/code patterns | Explore | Single | Read, Grep, Glob | "Where is X defined?", "Show structure of Y" |
+| Understand git history | historian | Single | Bash (git), Read | "Why was this changed?", "How did this evolve?" |
+| External research | researcher | Parallel (3-5) | WebSearch, WebFetch | Web docs, API references, best practices |
+| Create implementation plan | Plan | Single/Multiple | Read, Grep, Glob | Explicitly spawn via Task tool for thorough planning analysis |
+| Implement code changes | engineer | Single/Parallel | Edit, Write, Read, Bash | Code work, file modifications |
+
+### Tool Access Patterns
+
+**Explore Agent** (Read-only specialist):
+- **Primary tools**: Read, Grep, Glob (always prefer these)
+- **Bash fallback**: Git commands, `ls`, pipelines when absolutely necessary
+- **Prohibited**: Any write operations, network calls, destructive commands
+
+**Plan Agent** (Strategy specialist):
+- **Primary tools**: Read, Grep, Glob for code analysis
+- **Bash fallback**: Git history, dependency trees, build tool queries
+- **Prohibited**: Implementation commands (that's engineer's job)
+
+**Engineer Agent** (Implementation specialist):
+- **All tools**: Read, Edit, Write, Grep, Glob, Bash (full access)
+- **Bash usage**: Build commands, tests, git operations, file modifications
+- **Best practice**: Still prefer Read/Grep/Glob for exploration phase
+
+### Tool Selection Decision Tree
+
+```
+Need to explore codebase?
+├─ Finding files by pattern? → Use Glob
+├─ Searching file contents? → Use Grep
+├─ Reading specific files? → Use Read
+└─ Git history/metadata? → Use Bash (git/ls)
+
+Need to implement changes?
+├─ Creating new file? → Use Write
+├─ Modifying existing? → Use Edit (after Read)
+└─ Running builds/tests? → Use Bash
+```
 
 ### Workflow Patterns
 
@@ -408,6 +440,10 @@ Example: "Implement authentication system"
     - Use Explore agents (1-3 in parallel) to understand existing files and codebase structure
     - Use historian to understand past decisions and designs from git history
     - Quality over quantity: Use minimum agents needed (usually just 1 Explore agent)
+    - **Tool Usage**: Explore agents should use Read/Grep/Glob for 95% of operations
+    - Only fall back to Bash for git history or when piping is unavoidable
+    - Example good pattern: `Glob(**/*.py)` → `Grep(pattern="class ", glob="**/*.py")` → `Read(file_path="src/main.py")`
+    - Example bad pattern: `Bash(find . -name "*.py" | xargs grep "class")`
 
 2. **Research Phase** (Wave 2 - if needed)
     - Use researcher agents (3-5 in parallel) for external web searches, API docs, best practices
