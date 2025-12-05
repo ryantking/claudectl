@@ -27,7 +27,7 @@ jobs:
       - name: Install golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v2.7.1
           skip-cache: true
           skip-preview: true
           args: --help  # Prevent automatic run, we'll run it via just ci
