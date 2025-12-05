@@ -12,25 +12,15 @@ A CLI tool for managing Claude Code configurations, hooks, and isolated workspac
 
 ## Installation
 
-### Via pip from GitHub Release
+### Via Homebrew (macOS)
 
 ```bash
-# Latest release
-pip install https://github.com/ryantking/agentctl/releases/latest/download/agentctl.tar.gz
-
-# Specific version
-pip install https://github.com/ryantking/agentctl/releases/download/v0.1.0/agentctl-0.1.0.tar.gz
+brew install ryantking/tap/agentctl
 ```
 
-### Via uv from GitHub Release
+### Download Binary
 
-```bash
-# Latest release
-uv tool install https://github.com/ryantking/agentctl/releases/latest/download/agentctl.tar.gz
-
-# Specific version
-uv tool install https://github.com/ryantking/agentctl/releases/download/v0.1.0/agentctl-0.1.0.tar.gz
-```
+Download the appropriate binary for your platform from the [latest release](https://github.com/ryantking/agentctl/releases/latest).
 
 ### From source
 
@@ -48,6 +38,9 @@ agentctl status
 
 # Show version
 agentctl version
+
+# Initialize Claude Code configuration
+agentctl init
 
 # Create a new workspace
 agentctl workspace create my-feature-branch
@@ -70,8 +63,10 @@ agentctl workspace delete my-feature-branch
 - `agentctl workspace list [--json]` - List all managed workspaces
 - `agentctl workspace show <branch>` - Print workspace path
 - `agentctl workspace status <branch>` - Show detailed workspace status
-- `agentctl workspace delete <branch>` - Delete a workspace
+- `agentctl workspace diff <branch> [--target <branch>]` - Show git diff from workspace to target branch
+- `agentctl workspace delete <branch> [--force]` - Delete a workspace
 - `agentctl workspace clean` - Remove all clean workspaces
+- `agentctl workspace open <branch>` - Open Claude in a workspace directory
 
 ### Hook Commands
 
@@ -80,24 +75,36 @@ Hook commands are designed to be called from Claude Code hooks:
 - `agentctl hook post-edit` - Auto-commit Edit tool changes
 - `agentctl hook post-write` - Auto-commit Write tool changes (new files)
 - `agentctl hook context-info` - Inject git/workspace context into prompts
-- `agentctl hook notify-*` - Notification commands
+- `agentctl hook notify-input` - Send notification when Claude needs input
+- `agentctl hook notify-stop` - Send notification when Claude completes a task
+- `agentctl hook notify-error` - Send error notification
+- `agentctl hook notify-test` - Send a test notification
+
+### Init Command
+
+- `agentctl init` - Initialize Claude Code configuration
+  - `--global` - Install to $HOME/.claude instead of current repository
+  - `--force` - Overwrite existing files
+  - `--no-index` - Skip Claude CLI repository indexing
 
 ## Development
 
 ### Prerequisites
 
-- Python 3.13+
-- uv
+- Go 1.23+
 - just
+- golangci-lint
+- gofumpt
+- govulncheck
 - macOS (for full feature support)
 
 ### Setup
 
 ```bash
-# Install dependencies
+# Install system dependencies
 just deps
 
-# Install in editable mode
+# Install globally
 just install
 
 # Run tests
@@ -108,6 +115,9 @@ just lint
 
 # Format code
 just format
+
+# Run all CI checks
+just ci
 ```
 
 ### Running Tests
@@ -119,7 +129,11 @@ just test
 ### Building
 
 ```bash
+# Build binary
 just build
+
+# Clean build artifacts
+just clean
 ```
 
 ## Release Process
@@ -135,8 +149,9 @@ just build
    ```
 
 3. GitHub Actions automatically:
-   - Builds the package
-   - Creates GitHub Release
+   - Builds binaries for multiple platforms
+   - Creates GitHub Release with assets
+   - Updates Homebrew formula
 
 ## License
 

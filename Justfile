@@ -5,62 +5,93 @@ default:
 # Install system dependencies from Brewfile
 deps:
     brew bundle --no-upgrade --file=hack/Brewfile
-    gh extension install dlvhdr/gh-dash
 
-# Install agentctl globally in editable mode
+# Build the binary
+build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+    DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
+    LDFLAGS="-s -w -X github.com/ryantking/agentctl/cmd/agentctl.version=${VERSION} -X github.com/ryantking/agentctl/cmd/agentctl.commit=${COMMIT} -X github.com/ryantking/agentctl/cmd/agentctl.date=${DATE}"
+    go build -ldflags "${LDFLAGS}" -o agentctl ./cmd/agentctl
+
+# Install globally
 install:
-    uv tool install --force --editable .
-
-# Run linter checks
-lint:
-    uv run ruff check src
-    uv run basedpyright src
-
-# Format code
-format:
-    uv run ruff format src
-    uv run ruff check --fix src
-
-# Check formatting without making changes
-format-check:
-    uv run ruff format --check src
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+    COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "none")
+    DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "unknown")
+    LDFLAGS="-s -w -X github.com/ryantking/agentctl/cmd/agentctl.version=${VERSION} -X github.com/ryantking/agentctl/cmd/agentctl.commit=${COMMIT} -X github.com/ryantking/agentctl/cmd/agentctl.date=${DATE}"
+    go install -ldflags "${LDFLAGS}" ./cmd/agentctl
 
 # Run tests
 test:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ -d tests ]; then
-        uv run pytest tests
-    else
-        echo "No tests directory found, skipping tests"
-    fi
+    go test -race -coverprofile=coverage.out ./...
 
-# Run all checks (lint + test)
-ci: lint test
+# Run linters
+lint:
+    golangci-lint run
 
-# Build package (disables tool.uv.sources for distribution)
-build:
-    uv build --no-sources
+# Format code
+format:
+    gofumpt -w .
+    goimports -w .
+
+# Check formatting without making changes
+format-check:
+    gofumpt -l .
+    goimports -l .
+
+# Check for vulnerabilities
+vuln:
+    govulncheck ./...
+
+# Run all CI checks (lint + test + vuln)
+ci: lint test vuln
 
 # Clean build artifacts
 clean:
-    rm -rf dist/ build/ *.egg-info .pytest_cache .ruff_cache .coverage htmlcov
+    rm -f agentctl
+    rm -f coverage.out
 
 # Show current version
 version:
-    @uv version
+    @git describe --tags --always --dirty 2>/dev/null || echo "dev"
 
 # Create a release (bump version, commit, tag, push)
 release bump:
     #!/usr/bin/env bash
     set -euo pipefail
-    # Bump version
-    uv version --bump {{bump}}
-    NEW_VERSION=$(uv version)
-    # Commit changes
-    git add pyproject.toml uv.lock
-    git commit -m "chore: bump version to ${NEW_VERSION}"
+    # Get current version from git tags
+    CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+    CURRENT_VERSION=${CURRENT_VERSION#v}
+    # Bump version based on bump type
+    IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+    MAJOR=${VERSION_PARTS[0]}
+    MINOR=${VERSION_PARTS[1]}
+    PATCH=${VERSION_PARTS[2]}
+    case "{{bump}}" in
+        major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+        minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+        patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        *)
+            echo "Invalid bump type: {{bump}}. Use major, minor, or patch"
+            exit 1
+            ;;
+    esac
+    NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
     # Create and push tag
-    git tag "v${NEW_VERSION}"
-    echo "✓ Created tag v${NEW_VERSION}"
+    git tag "${NEW_VERSION}"
+    echo "✓ Created tag ${NEW_VERSION}"
     echo "Run 'git push && git push --tags' to trigger release workflow"

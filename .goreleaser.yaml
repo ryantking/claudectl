@@ -1,0 +1,48 @@
+version: 2
+
+project_name: agentctl
+
+builds:
+  - main: ./cmd/agentctl
+    binary: agentctl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+brews:
+  - name: agentctl
+    repository:
+      owner: ryantking
+      name: homebrew-tap
+    homepage: https://github.com/ryantking/agentctl
+    description: CLI for managing Claude Code workspaces
+    license: MIT
+    install: |
+      bin.install "agentctl"
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
