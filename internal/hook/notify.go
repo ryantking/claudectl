@@ -5,76 +5,60 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/ryantking/agentctl/internal/notify"
 )
 
 const (
-	appName        = "Claude Code"
-	claudeSender   = "com.anthropic.claudefordesktop"
+	appName = "Claude Code"
 )
 
-// SendNotification sends a macOS notification.
-func SendNotification(title, subtitle, message string, sound string, group string) error {
-	if hasTerminalNotifier() {
-		return sendWithTerminalNotifier(title, subtitle, message, sound, group)
+// detectSender detects the appropriate sender based on environment or defaults to Claude.
+func detectSender() string {
+	// Check for Cursor environment variable or process name
+	if os.Getenv("CURSOR_AGENT") == "true" || os.Getenv("CURSOR") != "" {
+		return notify.SenderCursor
 	}
-	return sendWithOSAScript(title, subtitle, message, sound)
-}
-
-func hasTerminalNotifier() bool {
-	_, err := exec.LookPath("terminal-notifier")
-	return err == nil
-}
-
-func sendWithTerminalNotifier(title, subtitle, message, sound, group string) error {
-	args := []string{
-		"-title", title,
-		"-subtitle", subtitle,
-		"-message", message,
-		"-sender", claudeSender,
+	// Check for explicit sender override
+	if sender := os.Getenv("AGENTCTL_NOTIFICATION_SENDER"); sender != "" {
+		return sender
 	}
-	if sound != "" {
-		args = append(args, "-sound", sound)
-	}
-	if group != "" {
-		args = append(args, "-group", group)
-	}
-
-	cmd := exec.Command("terminal-notifier", args...)
-	return cmd.Run()
-}
-
-func sendWithOSAScript(title, subtitle, message, sound string) error {
-	soundClause := ""
-	if sound != "" {
-		soundClause = fmt.Sprintf(` sound name "%s"`, sound)
-	}
-	script := fmt.Sprintf(`display notification "%s" with title "%s" subtitle "%s"%s`, message, title, subtitle, soundClause)
-	cmd := exec.Command("osascript", "-e", script)
-	return cmd.Run()
+	// Default to Claude Code
+	return notify.SenderClaudeCode
 }
 
 // NotifyInput sends notification when Claude needs input.
 func NotifyInput(message string) error {
+	return NotifyInputWithSender(message, detectSender())
+}
+
+// NotifyInputWithSender sends notification with a custom sender.
+func NotifyInputWithSender(message string, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
 		message = "Claude needs your input to continue"
 	}
-	return SendNotification(
-		fmt.Sprintf("🔔 %s", appName),
-		projectName,
-		message,
-		"",
-		fmt.Sprintf("claude-code-%s", projectName),
-	)
+	return notify.Send(notify.Options{
+		Title:    fmt.Sprintf("🔔 %s", appName),
+		Subtitle: projectName,
+		Message:  message,
+		Sound:    "",
+		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Sender:   sender,
+	})
 }
 
 // NotifyStop sends notification when Claude completes a task.
 func NotifyStop(transcriptPath string) error {
+	return NotifyStopWithSender(transcriptPath, detectSender())
+}
+
+// NotifyStopWithSender sends stop notification with a custom sender.
+func NotifyStopWithSender(transcriptPath string, sender string) error {
 	projectName := getProjectName()
 	timeStr := getTime()
 
@@ -85,42 +69,55 @@ func NotifyStop(transcriptPath string) error {
 		}
 	}
 
-	return SendNotification(
-		fmt.Sprintf("✅ %s", appName),
-		projectName,
-		message,
-		"",
-		fmt.Sprintf("claude-code-%s", projectName),
-	)
+	return notify.Send(notify.Options{
+		Title:    fmt.Sprintf("✅ %s", appName),
+		Subtitle: projectName,
+		Message:  message,
+		Sound:    "",
+		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Sender:   sender,
+	})
 }
 
 // NotifyError sends error notification.
 func NotifyError(message string) error {
+	return NotifyErrorWithSender(message, detectSender())
+}
+
+// NotifyErrorWithSender sends error notification with a custom sender.
+func NotifyErrorWithSender(message string, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
 		message = "An error occurred during task execution"
 	}
-	return SendNotification(
-		fmt.Sprintf("❌ %s", appName),
-		projectName,
-		message,
-		"Basso",
-		fmt.Sprintf("claude-code-%s", projectName),
-	)
+	return notify.Send(notify.Options{
+		Title:    fmt.Sprintf("❌ %s", appName),
+		Subtitle: projectName,
+		Message:  message,
+		Sound:    "Basso",
+		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Sender:   sender,
+	})
 }
 
 // NotifyTest sends a test notification.
 func NotifyTest() error {
-	projectName := getProjectName()
-	hasNotifier := hasTerminalNotifier()
+	return NotifyTestWithSender(detectSender())
+}
 
-	if err := SendNotification(
-		fmt.Sprintf("🧪 %s", appName),
-		projectName,
-		"Notifications are working!",
-		"",
-		fmt.Sprintf("claude-code-%s", projectName),
-	); err != nil {
+// NotifyTestWithSender sends a test notification with a custom sender.
+func NotifyTestWithSender(sender string) error {
+	projectName := getProjectName()
+	hasNotifier := notify.HasTerminalNotifier()
+
+	if err := notify.Send(notify.Options{
+		Title:    fmt.Sprintf("🧪 %s", appName),
+		Subtitle: projectName,
+		Message:  "Notifications are working!",
+		Sound:    "",
+		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Sender:   sender,
+	}); err != nil {
 		return err
 	}
 
