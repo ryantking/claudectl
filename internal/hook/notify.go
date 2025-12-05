@@ -60,14 +60,14 @@ func NotifyInput(message string) error {
 func NotifyInputWithSender(message string, appName, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
-		message = "Claude needs your input to continue"
+		message = "Input needed to continue"
 	}
 	return notify.Send(notify.Options{
 		Title:    appName,
 		Subtitle: projectName,
 		Message:  message,
 		Sound:    "",
-		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Group:    fmt.Sprintf("agentctl-%s", projectName),
 		Sender:   sender,
 	})
 }
@@ -95,7 +95,7 @@ func NotifyStopWithSender(transcriptPath string, appName, sender string) error {
 		Subtitle: projectName,
 		Message:  message,
 		Sound:    "",
-		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Group:    fmt.Sprintf("agentctl-%s", projectName),
 		Sender:   sender,
 	})
 }
@@ -110,14 +110,14 @@ func NotifyError(message string) error {
 func NotifyErrorWithSender(message string, appName, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
-		message = "An error occurred during task execution"
+		message = "An error occurred"
 	}
 	return notify.Send(notify.Options{
 		Title:    fmt.Sprintf("❌ %s", appName),
 		Subtitle: projectName,
 		Message:  message,
 		Sound:    "Basso",
-		Group:    fmt.Sprintf("claude-code-%s", projectName),
+		Group:    fmt.Sprintf("agentctl-%s", projectName),
 		Sender:   sender,
 	})
 }
