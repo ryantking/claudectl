@@ -1,11 +1,11 @@
-package operations
+package config
 
 import (
 	"reflect"
 	"testing"
 )
 
-func TestMergeSettingsSmart(t *testing.T) {
+func TestMerge(t *testing.T) {
 	base := map[string]interface{}{
 		"key1": "value1",
 		"key2": map[string]interface{}{
@@ -25,7 +25,7 @@ func TestMergeSettingsSmart(t *testing.T) {
 		"key4": "new_value",
 	}
 
-	merged := MergeSettingsSmart(base, overlay)
+	merged := Merge(base, overlay)
 
 	// Check scalar override
 	if merged["key1"] != "overlay_value1" {
@@ -75,7 +75,7 @@ func TestMergeLists(t *testing.T) {
 	}
 }
 
-func TestLoadSaveJSONSettings(t *testing.T) {
+func TestLoadSaveJSON(t *testing.T) {
 	original := map[string]interface{}{
 		"key1": "value1",
 		"key2": map[string]interface{}{
@@ -84,14 +84,14 @@ func TestLoadSaveJSONSettings(t *testing.T) {
 		"key3": []interface{}{float64(1), float64(2), float64(3)}, // JSON numbers become float64
 	}
 
-	data, err := SaveJSONSettings(original)
+	data, err := SaveJSON(original)
 	if err != nil {
-		t.Fatalf("SaveJSONSettings failed: %v", err)
+		t.Fatalf("SaveJSON failed: %v", err)
 	}
 
-	loaded, err := LoadJSONSettings(data)
+	loaded, err := LoadJSON(data)
 	if err != nil {
-		t.Fatalf("LoadJSONSettings failed: %v", err)
+		t.Fatalf("LoadJSON failed: %v", err)
 	}
 
 	// JSON unmarshals numbers as float64, so we need to compare carefully

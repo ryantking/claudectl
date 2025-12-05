@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/ryantking/agentctl/internal/git"
-	"github.com/ryantking/agentctl/internal/operations"
+	"github.com/ryantking/agentctl/internal/setup"
 	"github.com/ryantking/agentctl/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +42,7 @@ By default, skips existing files.`,
 				}
 			}
 
-			manager, err := operations.NewInitManager(target)
+			manager, err := setup.NewManager(target)
 			if err != nil {
 				result := output.Error(err.Error())
 				output.Output(result)

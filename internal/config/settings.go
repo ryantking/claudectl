@@ -1,16 +1,16 @@
-package operations
+package config
 
 import (
 	"encoding/json"
 	"reflect"
 )
 
-// MergeSettingsSmart performs a deep merge of settings with intelligent array handling.
+// Merge performs a deep merge of settings with intelligent array handling.
 // Strategy:
-// - Nested dicts: Recursive merge
+// - Nested maps: Recursive merge
 // - Arrays: Union (deduplicate simple types)
 // - Scalars: Overlay takes precedence
-func MergeSettingsSmart(base, overlay map[string]interface{}) map[string]interface{} {
+func Merge(base, overlay map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range base {
 		result[k] = v
@@ -22,7 +22,7 @@ func MergeSettingsSmart(base, overlay map[string]interface{}) map[string]interfa
 			result[key] = value
 		} else if isMap(value) && isMap(existing) {
 			// Both maps - recursive merge
-			result[key] = MergeSettingsSmart(
+			result[key] = Merge(
 				existing.(map[string]interface{}),
 				value.(map[string]interface{}),
 			)
@@ -82,8 +82,8 @@ func isSimpleType(v interface{}) bool {
 	}
 }
 
-// LoadJSONSettings loads JSON settings from bytes.
-func LoadJSONSettings(data []byte) (map[string]interface{}, error) {
+// LoadJSON loads JSON settings from bytes.
+func LoadJSON(data []byte) (map[string]interface{}, error) {
 	var settings map[string]interface{}
 	if err := json.Unmarshal(data, &settings); err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func LoadJSONSettings(data []byte) (map[string]interface{}, error) {
 	return settings, nil
 }
 
-// SaveJSONSettings saves JSON settings to bytes with indentation.
-func SaveJSONSettings(settings map[string]interface{}) ([]byte, error) {
+// SaveJSON saves JSON settings to bytes with indentation.
+func SaveJSON(settings map[string]interface{}) ([]byte, error) {
 	return json.MarshalIndent(settings, "", "  ")
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ryantking/agentctl/internal/operations"
+	"github.com/ryantking/agentctl/internal/context"
 	"github.com/ryantking/agentctl/internal/output"
 	"github.com/ryantking/agentctl/internal/workspace"
 	"github.com/spf13/cobra"
@@ -38,7 +38,7 @@ and copies necessary context files (CLAUDE.md, settings.local.json, .mcp.json).`
 			}
 
 			// Copy Claude context files
-			copiedFiles, err := operations.CopyClaudeContext(ws.Path, ws.RepoRoot)
+			copiedFiles, err := context.CopyClaudeContext(ws.Path, ws.RepoRoot)
 			jsonOutput, _ := cmd.Root().PersistentFlags().GetBool("json")
 			if err != nil {
 				// Non-fatal error, just log it

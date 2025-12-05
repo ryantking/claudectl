@@ -1,4 +1,4 @@
-package operations
+package setup
 
 import (
 	"context"
@@ -9,25 +9,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ryantking/agentctl/internal/config"
 	"github.com/ryantking/agentctl/internal/templates"
 )
 
-// InitManager manages Claude Code initialization.
-type InitManager struct {
+// Manager manages Claude Code initialization.
+type Manager struct {
 	target      string
 	templateDir string
 }
 
-// NewInitManager creates a new InitManager.
-func NewInitManager(target string) (*InitManager, error) {
-	return &InitManager{
+// NewManager creates a new initialization manager.
+func NewManager(target string) (*Manager, error) {
+	return &Manager{
 		target:      target,
 		templateDir: "templates", // Embedded templates path
 	}, nil
 }
 
 // Install executes full initialization.
-func (m *InitManager) Install(force, skipIndex bool) error {
+func (m *Manager) Install(force, skipIndex bool) error {
 	// 1. Install CLAUDE.md
 	fmt.Println("Installing CLAUDE.md...")
 	if err := m.installFile("CLAUDE.md", filepath.Join(m.target, "CLAUDE.md"), force); err != nil {
@@ -74,7 +75,7 @@ func (m *InitManager) Install(force, skipIndex bool) error {
 	return nil
 }
 
-func (m *InitManager) installFile(templatePath, destPath string, force bool) error {
+func (m *Manager) installFile(templatePath, destPath string, force bool) error {
 	if _, err := os.Stat(destPath); err == nil && !force {
 		relPath, _ := filepath.Rel(m.target, destPath)
 		fmt.Printf("  • %s (skipped)\n", relPath)
@@ -103,7 +104,7 @@ func (m *InitManager) installFile(templatePath, destPath string, force bool) err
 	return nil
 }
 
-func (m *InitManager) installDirectory(templateDir, destDir string, force, recursive bool, pattern string) (int, error) {
+func (m *Manager) installDirectory(templateDir, destDir string, force, recursive bool, pattern string) (int, error) {
 	count := 0
 
 	if recursive {
@@ -174,7 +175,7 @@ func (m *InitManager) installDirectory(templateDir, destDir string, force, recur
 	return count, nil
 }
 
-func (m *InitManager) copyTree(srcPath, destPath string) error {
+func (m *Manager) copyTree(srcPath, destPath string) error {
 	if err := os.MkdirAll(destPath, 0755); err != nil {
 		return err
 	}
@@ -206,7 +207,7 @@ func (m *InitManager) copyTree(srcPath, destPath string) error {
 	return nil
 }
 
-func (m *InitManager) mergeSettings(force bool) error {
+func (m *Manager) mergeSettings(force bool) error {
 	sourcePath := filepath.Join(m.target, ".claude", "settings.json")
 	destPath := sourcePath
 
@@ -216,7 +217,7 @@ func (m *InitManager) mergeSettings(force bool) error {
 		return fmt.Errorf("failed to read template settings.json: %w", err)
 	}
 
-	newSettings, err := LoadJSONSettings(sourceData)
+	newSettings, err := config.LoadJSON(sourceData)
 	if err != nil {
 		return err
 	}
@@ -227,7 +228,7 @@ func (m *InitManager) mergeSettings(force bool) error {
 
 	if _, err := os.Stat(destPath); os.IsNotExist(err) {
 		// No existing settings - just copy
-		data, err := SaveJSONSettings(newSettings)
+		data, err := config.SaveJSON(newSettings)
 		if err != nil {
 			return err
 		}
@@ -245,14 +246,14 @@ func (m *InitManager) mergeSettings(force bool) error {
 		return err
 	}
 
-	existingSettings, err := LoadJSONSettings(existingData)
+	existingSettings, err := config.LoadJSON(existingData)
 	if err != nil {
 		return err
 	}
 
 	if force {
 		// Force: overwrite
-		data, err := SaveJSONSettings(newSettings)
+		data, err := config.SaveJSON(newSettings)
 		if err != nil {
 			return err
 		}
@@ -265,8 +266,8 @@ func (m *InitManager) mergeSettings(force bool) error {
 	}
 
 	// Smart merge
-	merged := MergeSettingsSmart(existingSettings, newSettings)
-	data, err := SaveJSONSettings(merged)
+	merged := config.Merge(existingSettings, newSettings)
+	data, err := config.SaveJSON(merged)
 	if err != nil {
 		return err
 	}
@@ -278,7 +279,7 @@ func (m *InitManager) mergeSettings(force bool) error {
 	return nil
 }
 
-func (m *InitManager) configureMCP(force bool) error {
+func (m *Manager) configureMCP(force bool) error {
 	destPath := filepath.Join(m.target, ".mcp.json")
 
 	// New MCP servers to add
@@ -307,7 +308,7 @@ func (m *InitManager) configureMCP(force bool) error {
 			return err
 		}
 
-		existingConfig, err := LoadJSONSettings(data)
+		existingConfig, err := config.LoadJSON(data)
 		if err != nil {
 			return err
 		}
@@ -349,7 +350,7 @@ func (m *InitManager) configureMCP(force bool) error {
 	}
 
 	// Write MCP configuration
-	data, err := SaveJSONSettings(mcpConfig)
+	data, err := config.SaveJSON(mcpConfig)
 	if err != nil {
 		return err
 	}
@@ -362,7 +363,7 @@ func (m *InitManager) configureMCP(force bool) error {
 	return nil
 }
 
-func (m *InitManager) indexRepository() error {
+func (m *Manager) indexRepository() error {
 	if _, err := exec.LookPath("claude"); err != nil {
 		return fmt.Errorf("claude CLI not found")
 	}
@@ -403,7 +404,7 @@ Format as clean markdown starting at heading level 3 (###), keep it brief (under
 	return nil
 }
 
-func (m *InitManager) insertRepositoryIndex(indexContent string) error {
+func (m *Manager) insertRepositoryIndex(indexContent string) error {
 	claudeMDPath := filepath.Join(m.target, "CLAUDE.md")
 	if _, err := os.Stat(claudeMDPath); os.IsNotExist(err) {
 		return fmt.Errorf("CLAUDE.md not found")
@@ -440,4 +441,3 @@ func matchPattern(name, pattern string) bool {
 	}
 	return name == pattern
 }
-
