@@ -72,7 +72,6 @@ Hook commands are designed to be called from Claude Code hooks:
 - `agentctl hook notify-input` - Send notification when Claude needs input
 - `agentctl hook notify-stop` - Send notification when Claude completes a task
 - `agentctl hook notify-error` - Send error notification
-- `agentctl hook notify-test` - Send a test notification
 
 ### Init Command
 

@@ -13,36 +13,57 @@ import (
 	"github.com/ryantking/agentctl/internal/notify"
 )
 
-const (
-	appName = "Claude Code"
-)
-
-// detectSender detects the appropriate sender based on environment.
-// Only sets sender if a known agent is detected, otherwise returns empty string.
-func detectSender() string {
-	// Check for Cursor environment variables
-	if os.Getenv("CURSOR_AGENT") == "true" || os.Getenv("CURSOR") != "" {
-		return notify.SenderCursor
+// detectAgent detects the agent type and returns (appName, sender).
+// Returns ("Claude Code", sender) or ("Cursor", sender) or ("Cursor Agent", sender) based on environment.
+func detectAgent() (string, string) {
+	// Check for Cursor Agent TUI (terminal-based)
+	// CURSOR_AGENT is set to "1" when running in Cursor Agent TUI
+	if cursorAgent := os.Getenv("CURSOR_AGENT"); cursorAgent != "" {
+		// If CURSOR_CLI is also set, it's Cursor IDE, not Agent TUI
+		if os.Getenv("CURSOR_CLI") == "" {
+			return "Cursor Agent", notify.SenderCursor
+		}
+		// CURSOR_CLI is set, so it's Cursor IDE
+		return "Cursor", notify.SenderCursor
 	}
+	
+	// Check for Cursor IDE (desktop app) - CURSOR_CLI or CURSOR_CLI_MODE indicates IDE
+	if os.Getenv("CURSOR_CLI") != "" || os.Getenv("CURSOR_CLI_MODE") != "" {
+		return "Cursor", notify.SenderCursor
+	}
+	
 	// Check for Claude Code environment variables
-	if os.Getenv("CLAUDE_CODE") != "" || os.Getenv("ANTHROPIC_CLAUDE") != "" {
-		return notify.SenderClaudeCode
+	// Claude Code typically sets these when running
+	if os.Getenv("CLAUDE_CODE") != "" || 
+	   os.Getenv("ANTHROPIC_CLAUDE") != "" ||
+	   os.Getenv("CLAUDE_DESKTOP") != "" {
+		return "Claude Code", notify.SenderClaudeCode
 	}
+	
 	// Check for explicit sender override
 	if sender := os.Getenv("AGENTCTL_NOTIFICATION_SENDER"); sender != "" {
-		return sender
+		// Try to infer app name from sender
+		if sender == notify.SenderCursor {
+			return "Cursor", sender
+		}
+		if sender == notify.SenderClaudeCode {
+			return "Claude Code", sender
+		}
+		return "Agent", sender
 	}
-	// No known agent detected - return empty string (no custom sender)
-	return ""
+	
+	// No known agent detected - return empty sender (no custom icon)
+	return "Claude Code", ""
 }
 
 // NotifyInput sends notification when Claude needs input.
 func NotifyInput(message string) error {
-	return NotifyInputWithSender(message, detectSender())
+	appName, sender := detectAgent()
+	return NotifyInputWithSender(message, appName, sender)
 }
 
 // NotifyInputWithSender sends notification with a custom sender.
-func NotifyInputWithSender(message string, sender string) error {
+func NotifyInputWithSender(message string, appName, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
 		message = "Claude needs your input to continue"
@@ -59,11 +80,12 @@ func NotifyInputWithSender(message string, sender string) error {
 
 // NotifyStop sends notification when Claude completes a task.
 func NotifyStop(transcriptPath string) error {
-	return NotifyStopWithSender(transcriptPath, detectSender())
+	appName, sender := detectAgent()
+	return NotifyStopWithSender(transcriptPath, appName, sender)
 }
 
 // NotifyStopWithSender sends stop notification with a custom sender.
-func NotifyStopWithSender(transcriptPath string, sender string) error {
+func NotifyStopWithSender(transcriptPath string, appName, sender string) error {
 	projectName := getProjectName()
 	timeStr := getTime()
 
@@ -86,11 +108,12 @@ func NotifyStopWithSender(transcriptPath string, sender string) error {
 
 // NotifyError sends error notification.
 func NotifyError(message string) error {
-	return NotifyErrorWithSender(message, detectSender())
+	appName, sender := detectAgent()
+	return NotifyErrorWithSender(message, appName, sender)
 }
 
 // NotifyErrorWithSender sends error notification with a custom sender.
-func NotifyErrorWithSender(message string, sender string) error {
+func NotifyErrorWithSender(message string, appName, sender string) error {
 	projectName := getProjectName()
 	if message == "" {
 		message = "An error occurred during task execution"
@@ -104,7 +127,6 @@ func NotifyErrorWithSender(message string, sender string) error {
 		Sender:   sender,
 	})
 }
-
 
 func getProjectName() string {
 	cwd, err := os.Getwd()
