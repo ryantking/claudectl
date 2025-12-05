@@ -57,8 +57,9 @@ func NewHookNotifyStopCmd() *cobra.Command {
 // NewHookNotifyErrorCmd creates the hook notify-error command.
 func NewHookNotifyErrorCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "notify-error",
+		Use:   "notify-error [message]",
 		Short: "Send error notification",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input, _ := hook.GetStdinData()
 			message := ""

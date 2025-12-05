@@ -109,7 +109,7 @@ Initialize Claude Code configuration in a repository or globally.
 
 ### Prerequisites
 
-- Go 1.23+
+- Go 1.24+
 - `just` (command runner)
 - `golangci-lint` (for linting)
 - `gofumpt` (for formatting)
