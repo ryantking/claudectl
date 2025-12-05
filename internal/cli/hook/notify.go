@@ -10,14 +10,21 @@ import (
 // NewHookNotifyInputCmd creates the hook notify-input command.
 func NewHookNotifyInputCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "notify-input",
-		Short: "Notification hook - sends notification when Claude needs input",
+		Use:   "notify-input [message]",
+		Short: "Notification hook - sends notification when input is needed",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input, _ := hook.GetStdinData()
-			message := "Claude needs your input to continue"
+			message := ""
+			
+			// Prefer message from stdin (hook input)
 			if input != nil && input.Message != "" {
 				message = input.Message
+			} else if len(args) > 0 {
+				// Fall back to command-line argument
+				message = args[0]
 			}
+			
 			_ = hook.NotifyInput(message)
 			os.Exit(0)
 			return nil
@@ -31,7 +38,7 @@ func NewHookNotifyInputCmd() *cobra.Command {
 func NewHookNotifyStopCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "notify-stop",
-		Short: "Stop hook - sends notification when Claude completes a task",
+		Short: "Stop hook - sends notification when a task completes",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input, _ := hook.GetStdinData()
 			transcriptPath := ""
@@ -54,10 +61,16 @@ func NewHookNotifyErrorCmd() *cobra.Command {
 		Short: "Send error notification",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			input, _ := hook.GetStdinData()
-			message := "An error occurred during task execution"
+			message := ""
+			
+			// Prefer message from stdin (hook input)
 			if input != nil && input.Message != "" {
 				message = input.Message
+			} else if len(args) > 0 {
+				// Fall back to command-line argument
+				message = args[0]
 			}
+			
 			_ = hook.NotifyError(message)
 			os.Exit(0)
 			return nil

@@ -50,7 +50,7 @@ func detectAgent() (string, string) {
 	return "Claude Code", ""
 }
 
-// NotifyInput sends notification when Claude needs input.
+// NotifyInput sends notification when input is needed.
 func NotifyInput(message string) error {
 	appName, sender := detectAgent()
 	return NotifyInputWithSender(message, appName, sender)
@@ -72,7 +72,7 @@ func NotifyInputWithSender(message string, appName, sender string) error {
 	})
 }
 
-// NotifyStop sends notification when Claude completes a task.
+// NotifyStop sends notification when a task completes.
 func NotifyStop(transcriptPath string) error {
 	appName, sender := detectAgent()
 	return NotifyStopWithSender(transcriptPath, appName, sender)
