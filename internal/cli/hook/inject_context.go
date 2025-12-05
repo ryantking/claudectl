@@ -15,7 +15,7 @@ func NewHookInjectContextCmd() *cobra.Command {
 		Short: "UserPromptSubmit hook - injects live context into each user prompt",
 		Long: `Outputs context information that gets automatically injected into
 the conversation before Claude processes the user's message.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// Consume stdin if present
 			_, _ = hook.GetStdinData()
 

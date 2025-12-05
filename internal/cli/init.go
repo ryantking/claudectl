@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -34,8 +33,7 @@ By default, skips existing files.`,
 			} else {
 				target, err = git.GetRepoRoot()
 				if err != nil {
-					msg := fmt.Sprintf("%v\n\nRun from inside a git repository or use --global", err)
-					output.Error(fmt.Errorf(msg))
+					output.Errorf("%v\n\nRun from inside a git repository or use --global", err)
 					return err
 				}
 			}

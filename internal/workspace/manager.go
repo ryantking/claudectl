@@ -12,7 +12,7 @@ import (
 )
 
 // WorkspaceManager manages workspace lifecycle operations.
-type WorkspaceManager struct {
+type WorkspaceManager struct { //nolint:revive // Stuttering is acceptable for exported manager types
 	repoRoot string
 }
 

@@ -14,7 +14,7 @@ func NewWorkspaceCleanCmd() *cobra.Command {
 		Use:   "clean",
 		Short: "Remove all clean workspaces",
 		Long:  "Removes all workspaces that have no uncommitted changes. Useful for cleanup after completing work.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			jsonMode, _ := cmd.Flags().GetBool("json")
 
 			manager, err := workspace.NewManager()

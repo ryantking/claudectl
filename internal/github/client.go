@@ -117,7 +117,7 @@ type PRStatus struct {
 }
 
 // GetPRForBranch finds the PR associated with a branch.
-func (c *Client) GetPRForBranch(ctx context.Context, branch string) (*PRStatus, error) {
+func (c *Client) GetPRForBranch(_ context.Context, branch string) (*PRStatus, error) {
 	// Query REST API for PRs with this head branch
 	path := fmt.Sprintf("repos/%s/%s/pulls?head=%s:%s&state=open", c.owner, c.repo, c.owner, branch)
 	
@@ -166,7 +166,7 @@ type prDetailResponse struct {
 }
 
 // getPRDetails gets detailed PR information including checks.
-func (c *Client) getPRDetails(prNumber int, headSHA string) (*prDetailResponse, error) {
+func (c *Client) getPRDetails(_ int, headSHA string) (*prDetailResponse, error) {
 	detail := &prDetailResponse{}
 
 	// Get check runs for the PR head SHA
@@ -195,11 +195,12 @@ func (c *Client) getPRDetails(prNumber int, headSHA string) (*prDetailResponse, 
 			}
 		}
 
-		if failed > 0 {
+		switch {
+		case failed > 0:
 			detail.ChecksSummary = fmt.Sprintf("%d failing", failed)
-		} else if pending > 0 {
+		case pending > 0:
 			detail.ChecksSummary = fmt.Sprintf("%d pending", pending)
-		} else if passed > 0 {
+		case passed > 0:
 			detail.ChecksSummary = fmt.Sprintf("%d passed", passed)
 		}
 	}

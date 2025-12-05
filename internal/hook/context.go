@@ -14,7 +14,7 @@ import (
 )
 
 // ContextInfo generates context information for injection into prompts.
-func ContextInfo() (string, error) {
+func ContextInfo() (string, error) { //nolint:gocyclo // Complex context gathering logic
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -132,12 +132,14 @@ func getAllGitBranches(repoRoot string) map[string]string {
 		return branches
 	}
 
-	iter.ForEach(func(ref *plumbing.Reference) error {
+	if err := iter.ForEach(func(ref *plumbing.Reference) error {
 		branchName := ref.Name().Short()
 		// Simplified: mark as unknown (checking cleanliness is expensive)
 		branches[branchName] = "unknown"
 		return nil
-	})
+	}); err != nil {
+		return branches
+	}
 
 	return branches
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // HookInput represents the JSON input from Claude Code hooks.
-type HookInput struct {
+type HookInput struct { //nolint:revive // Stuttering is acceptable for exported input types
 	SessionID     string                 `json:"session_id"`
 	ToolInput     map[string]interface{} `json:"tool_input"`
 	TranscriptPath string                `json:"transcript_path"`

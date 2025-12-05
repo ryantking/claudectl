@@ -17,19 +17,21 @@ func Merge(base, overlay map[string]interface{}) map[string]interface{} {
 	}
 
 	for key, value := range overlay {
-		if existing, ok := result[key]; !ok {
+		existing, exists := result[key]
+		switch {
+		case !exists:
 			// New key - add it
 			result[key] = value
-		} else if isMap(value) && isMap(existing) {
+		case isMap(value) && isMap(existing):
 			// Both maps - recursive merge
 			result[key] = Merge(
 				existing.(map[string]interface{}),
 				value.(map[string]interface{}),
 			)
-		} else if isSlice(value) && isSlice(existing) {
+		case isSlice(value) && isSlice(existing):
 			// Both slices - merge with deduplication
 			result[key] = mergeLists(existing.([]interface{}), value.([]interface{}))
-		} else {
+		default:
 			// Scalar or type mismatch - overlay wins
 			result[key] = value
 		}

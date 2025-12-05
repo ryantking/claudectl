@@ -6,7 +6,7 @@ import (
 )
 
 // completeWorkspaceNames provides completion for workspace branch names.
-func completeWorkspaceNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func completeWorkspaceNames(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	// Don't complete if we already have an argument
 	if len(args) > 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp

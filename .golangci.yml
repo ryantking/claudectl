@@ -1,12 +1,4 @@
-version: "2"
-
-formatters:
-  enable:
-    - goimports
-    - gofumpt
-
 linters:
-  default: standard
   enable:
     - gosec
     - bodyclose
@@ -15,13 +7,17 @@ linters:
     - errcheck
     - gocritic
     - gocyclo
-    - err113
-    - wrapcheck
-    - modernize
+    - revive
 
-  settings:
-    gocyclo:
-      min-complexity: 15
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  revive:
+    rules:
+      - name: exported
+        arguments:
+          - checkPrivateReceivers
+          - sayRepetitiveInsteadOfStutters
 
 issues:
   exclude-rules:

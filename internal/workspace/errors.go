@@ -10,7 +10,7 @@ var (
 )
 
 // WorkspaceError represents a workspace operation error.
-type WorkspaceError struct {
+type WorkspaceError struct { //nolint:revive // Stuttering is acceptable for exported error types
 	Workspace string
 	Op        string
 	Err       error

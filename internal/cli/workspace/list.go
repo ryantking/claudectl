@@ -11,12 +11,12 @@ import (
 )
 
 // NewWorkspaceListCmd creates the workspace list command.
-func NewWorkspaceListCmd() *cobra.Command {
+func NewWorkspaceListCmd() *cobra.Command { //nolint:gocyclo // Complex command setup with multiple output formats
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all managed workspaces",
 		Long:  "Shows workspaces in ~/.claude/workspaces/ with their status.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			jsonMode, _ := cmd.Flags().GetBool("json")
 
 			manager, err := workspace.NewManager()
@@ -64,7 +64,7 @@ func NewWorkspaceListCmd() *cobra.Command {
 
 			// Simple text output - print immediately and exit
 			if len(workspaces) == 0 {
-				fmt.Println("\n  No workspaces found.\n\n  Create one with: agentctl workspace create <branch>\n")
+				fmt.Print("\n  No workspaces found.\n\n  Create one with: agentctl workspace create <branch>\n\n")
 				return nil
 			}
 

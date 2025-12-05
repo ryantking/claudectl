@@ -13,7 +13,7 @@ func NewHookPostWriteCmd() *cobra.Command {
 		Use:   "post-write",
 		Short: "PostToolUse hook for Write tool (new files)",
 		Long:  "Auto-commits new files if on a feature branch. Reads file path and session ID from stdin JSON.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			input, _ := hook.GetStdinData()
 			filePath := hook.GetFilePath(input)
 			_ = hook.PostWrite(filePath)

@@ -91,7 +91,7 @@ func (m *Manager) installFile(templatePath, destPath string, force bool) error {
 		return err
 	}
 
-	if err := os.WriteFile(destPath, data, 0644); err != nil {
+	if err := os.WriteFile(destPath, data, 0644); err != nil { //nolint:gosec // Template files need to be readable
 		return err
 	}
 
@@ -198,7 +198,7 @@ func (m *Manager) copyTree(srcPath, destPath string) error {
 			if err != nil {
 				return err
 			}
-			if err := os.WriteFile(destItem, data, 0644); err != nil {
+			if err := os.WriteFile(destItem, data, 0644); err != nil { //nolint:gosec // Template files need to be readable
 				return err
 			}
 		}
@@ -232,7 +232,7 @@ func (m *Manager) mergeSettings(force bool) error {
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil {
+		if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil { //nolint:gosec // Template files need to be readable //nolint:gosec // Template files need to be readable
 			return err
 		}
 		relPath, _ := filepath.Rel(m.target, destPath)
@@ -257,7 +257,7 @@ func (m *Manager) mergeSettings(force bool) error {
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil {
+		if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil { //nolint:gosec // Template files need to be readable //nolint:gosec // Template files need to be readable
 			return err
 		}
 		relPath, _ := filepath.Rel(m.target, destPath)
@@ -271,7 +271,7 @@ func (m *Manager) mergeSettings(force bool) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil {
+	if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil { //nolint:gosec // Template files need to be readable
 		return err
 	}
 	relPath, _ := filepath.Rel(m.target, destPath)
@@ -354,7 +354,7 @@ func (m *Manager) configureMCP(force bool) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil {
+	if err := os.WriteFile(destPath, append(data, '\n'), 0644); err != nil { //nolint:gosec // Template files need to be readable
 		return err
 	}
 
@@ -428,7 +428,7 @@ func (m *Manager) insertRepositoryIndex(indexContent string) error {
 
 	updatedContent := content[:startIdx+len(startMarker)] + "\n" + indexContent + "\n" + content[endIdx:]
 
-	return os.WriteFile(claudeMDPath, []byte(updatedContent), 0644)
+	return os.WriteFile(claudeMDPath, []byte(updatedContent), 0644) //nolint:gosec // Template files need to be readable
 }
 
 func matchPattern(name, pattern string) bool {

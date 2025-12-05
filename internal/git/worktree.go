@@ -120,7 +120,7 @@ func parseWorktreeDir(worktreeDir, repoRoot string) (Worktree, error) {
 // AddWorktree creates a new worktree.
 // If createBranch is true, creates a new branch from baseBranch (or HEAD if baseBranch is empty).
 // If createBranch is false, checks out the existing branch.
-func AddWorktree(repoRoot, path, branch string, createBranch bool, baseBranch string) error {
+func AddWorktree(repoRoot, path, branch string, createBranch bool, baseBranch string) error { //nolint:gocyclo // Complex worktree creation logic
 	repo, err := OpenRepo(repoRoot)
 	if err != nil {
 		return fmt.Errorf("failed to open repository: %w", err)
@@ -177,7 +177,7 @@ func AddWorktree(repoRoot, path, branch string, createBranch bool, baseBranch st
 
 	// Write gitdir file (points to worktree path)
 	gitdirFile := filepath.Join(worktreeDir, "gitdir")
-	if err := os.WriteFile(gitdirFile, []byte(absPath+"\n"), 0644); err != nil {
+	if err := os.WriteFile(gitdirFile, []byte(absPath+"\n"), 0644); err != nil { //nolint:gosec // Git directory file needs to be readable
 		return fmt.Errorf("failed to write gitdir: %w", err)
 	}
 
@@ -189,14 +189,14 @@ func AddWorktree(repoRoot, path, branch string, createBranch bool, baseBranch st
 	} else {
 		headContent = baseHash.String() + "\n"
 	}
-	if err := os.WriteFile(headFile, []byte(headContent), 0644); err != nil {
+	if err := os.WriteFile(headFile, []byte(headContent), 0644); err != nil { //nolint:gosec // Git HEAD file needs to be readable
 		return fmt.Errorf("failed to write HEAD: %w", err)
 	}
 
 	// Create .git file in worktree pointing to worktree gitdir
 	worktreeGitFile := filepath.Join(absPath, ".git")
 	gitdirContent := fmt.Sprintf("gitdir: %s\n", worktreeDir)
-	if err := os.WriteFile(worktreeGitFile, []byte(gitdirContent), 0644); err != nil {
+	if err := os.WriteFile(worktreeGitFile, []byte(gitdirContent), 0644); err != nil { //nolint:gosec // Git .git file needs to be readable
 		return fmt.Errorf("failed to write .git file: %w", err)
 	}
 

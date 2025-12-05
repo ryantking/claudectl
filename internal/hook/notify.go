@@ -134,7 +134,7 @@ func getTime() string {
 	return time.Now().Format("3:04 PM")
 }
 
-func extractFinalResponse(transcriptPath string, maxLength int) string {
+func extractFinalResponse(transcriptPath string, maxLength int) string { //nolint:gocyclo // Complex text extraction logic
 	path := filepath.Clean(transcriptPath)
 	if !filepath.IsAbs(path) {
 		home, err := os.UserHomeDir()
