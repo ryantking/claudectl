@@ -17,26 +17,20 @@ import (
 // Returns ("Claude Code", sender) or ("Cursor", sender) or ("Cursor Agent", sender) based on environment.
 func detectAgent() (string, string) {
 	// Check for Cursor Agent TUI (terminal-based)
-	// CURSOR_AGENT is set to "1" when running in Cursor Agent TUI
-	if cursorAgent := os.Getenv("CURSOR_AGENT"); cursorAgent != "" {
-		// If CURSOR_CLI is also set, it's Cursor IDE, not Agent TUI
-		if os.Getenv("CURSOR_CLI") == "" {
-			return "Cursor Agent", notify.SenderCursor
-		}
-		// CURSOR_CLI is set, so it's Cursor IDE
+	// CURSOR_AGENT=1 AND CURSOR_CLI_COMPAT=1 indicates Cursor Agent
+	if os.Getenv("CURSOR_AGENT") == "1" && os.Getenv("CURSOR_CLI_COMPAT") == "1" {
+		return "Cursor Agent", notify.SenderCursor
+	}
+	
+	// Check for Cursor IDE (desktop app)
+	// CURSOR_AGENT=1 but CURSOR_CLI_COMPAT is unset indicates Cursor IDE
+	if os.Getenv("CURSOR_AGENT") == "1" {
 		return "Cursor", notify.SenderCursor
 	}
 	
-	// Check for Cursor IDE (desktop app) - CURSOR_CLI or CURSOR_CLI_MODE indicates IDE
-	if os.Getenv("CURSOR_CLI") != "" || os.Getenv("CURSOR_CLI_MODE") != "" {
-		return "Cursor", notify.SenderCursor
-	}
-	
-	// Check for Claude Code environment variables
-	// Claude Code typically sets these when running
-	if os.Getenv("CLAUDE_CODE") != "" || 
-	   os.Getenv("ANTHROPIC_CLAUDE") != "" ||
-	   os.Getenv("CLAUDE_DESKTOP") != "" {
+	// Check for Claude Code
+	// CLAUDECODE=1 indicates Claude Code
+	if os.Getenv("CLAUDECODE") == "1" {
 		return "Claude Code", notify.SenderClaudeCode
 	}
 	
@@ -119,7 +113,7 @@ func NotifyErrorWithSender(message string, appName, sender string) error {
 		message = "An error occurred during task execution"
 	}
 	return notify.Send(notify.Options{
-		Title:    appName,
+		Title:    fmt.Sprintf("❌ %s", appName),
 		Subtitle: projectName,
 		Message:  message,
 		Sound:    "Basso",
