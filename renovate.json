@@ -1,6 +1,26 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices",
+    ":semanticCommits",
+    "group:allNonMajor"
+  ],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["gomod"],
+      "separateMajorMinor": true,
+      "postUpdateOptions": ["gomodTidy"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "GitHub Actions (non-major)",
+      "groupSlug": "gha-non-major"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["major-update", "needs-review"]
+    }
   ]
 }
