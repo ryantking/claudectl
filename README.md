@@ -88,7 +88,7 @@ Hook commands are designed to be called from Claude Code hooks. They handle stdi
 - **Cursor IDE**: Detected via `CURSOR_AGENT=1` (without `CURSOR_CLI_COMPAT`)
 - **Claude Code**: Detected via `CLAUDECODE=1`
 
-You can override the sender with `AGENTCTL_NOTIFICATION_SENDER` environment variable.
+You can override the sender with `AGENT_NOTIFICATION_SENDER` environment variable.
 
 ### Init Command
 

@@ -35,7 +35,7 @@ func detectAgent() (string, string) {
 	}
 	
 	// Check for explicit sender override
-	if sender := os.Getenv("AGENTCTL_NOTIFICATION_SENDER"); sender != "" {
+	if sender := os.Getenv("AGENT_NOTIFICATION_SENDER"); sender != "" {
 		// Try to infer app name from sender
 		if sender == notify.SenderCursor {
 			return "Cursor", sender
