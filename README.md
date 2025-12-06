@@ -8,37 +8,22 @@ A CLI tool for managing Claude Code configurations, hooks, and isolated workspac
 - **Hook Integration**: Seamless integration with Claude Code lifecycle hooks
 - **Auto-commit**: Automatic git commits on feature branches for Edit/Write operations
 - **Context Injection**: Live git/workspace status injected into every Claude prompt
-- **Notification System**: macOS notifications for Claude Code events
+- **Notification System**: macOS notifications with automatic agent detection (Claude Code, Cursor, Cursor Agent)
+- **Tab Completion**: Intelligent tab completion for workspace commands
 
 ## Installation
 
-### Via pip from GitHub Release
+### Via Go Install
 
 ```bash
-# Latest release
-pip install https://github.com/ryantking/agentctl/releases/latest/download/agentctl.tar.gz
-
-# Specific version
-pip install https://github.com/ryantking/agentctl/releases/download/v0.1.0/agentctl-0.1.0.tar.gz
+go install github.com/ryantking/agentctl/cmd/agentctl@latest
 ```
 
-### Via uv from GitHub Release
+### Download Binary
 
-```bash
-# Latest release
-uv tool install https://github.com/ryantking/agentctl/releases/latest/download/agentctl.tar.gz
+Download the appropriate binary for your platform from the [latest release](https://github.com/ryantking/agentctl/releases/latest).
 
-# Specific version
-uv tool install https://github.com/ryantking/agentctl/releases/download/v0.1.0/agentctl-0.1.0.tar.gz
-```
-
-### From source
-
-```bash
-git clone https://github.com/ryantking/agentctl.git
-cd agentctl
-just install
-```
+Extract and place the binary in your PATH (e.g., `/usr/local/bin` or `~/bin`).
 
 ## Quick Start
 
@@ -49,10 +34,13 @@ agentctl status
 # Show version
 agentctl version
 
+# Initialize Claude Code configuration
+agentctl init
+
 # Create a new workspace
 agentctl workspace create my-feature-branch
 
-# List all workspaces
+# List all workspaces (with tab completion!)
 agentctl workspace list
 
 # Show workspace details
@@ -66,38 +54,75 @@ agentctl workspace delete my-feature-branch
 
 ### Workspace Commands
 
-- `agentctl workspace create <branch>` - Create new workspace with git worktree
-- `agentctl workspace list [--json]` - List all managed workspaces
-- `agentctl workspace show <branch>` - Print workspace path
-- `agentctl workspace status <branch>` - Show detailed workspace status
-- `agentctl workspace delete <branch>` - Delete a workspace
+Manage git worktree-based workspaces for parallel development sessions.
+
+- `agentctl workspace create <branch> [--base <branch>]` - Create new workspace with git worktree
+- `agentctl workspace list [--json]` - List all workspaces (includes main/master, shows current with `*`)
+- `agentctl workspace show [branch]` - Print workspace path (for shell integration)
+- `agentctl workspace status [branch]` - Show detailed workspace status
+- `agentctl workspace delete [branch] [--force]` - Delete a workspace
 - `agentctl workspace clean` - Remove all clean workspaces
+
+**Tab Completion**: Workspace commands (`show`, `status`, `delete`) support tab completion for branch names.
+
+**JSON Output**: Use `--json` flag on any workspace command for programmatic access:
+
+```bash
+agentctl workspace list --json
+agentctl workspace show refactor/golang --json
+```
 
 ### Hook Commands
 
-Hook commands are designed to be called from Claude Code hooks:
+Hook commands are designed to be called from Claude Code hooks. They handle stdin parsing, error handling, and exit codes appropriately.
 
+- `agentctl hook inject-context` - Inject git/workspace context into prompts
+- `agentctl hook notify-input [message]` - Send notification when input is needed
+- `agentctl hook notify-stop` - Send notification when a task completes
+- `agentctl hook notify-error [message]` - Send error notification
 - `agentctl hook post-edit` - Auto-commit Edit tool changes
 - `agentctl hook post-write` - Auto-commit Write tool changes (new files)
-- `agentctl hook context-info` - Inject git/workspace context into prompts
-- `agentctl hook notify-*` - Notification commands
+
+**Notification Agent Detection**: Notifications automatically detect the agent environment and use the appropriate icon:
+- **Cursor Agent** (TUI): Detected via `CURSOR_AGENT=1` and `CURSOR_CLI_COMPAT=1`
+- **Cursor IDE**: Detected via `CURSOR_AGENT=1` (without `CURSOR_CLI_COMPAT`)
+- **Claude Code**: Detected via `CLAUDECODE=1`
+
+You can override the sender with `AGENTCTL_NOTIFICATION_SENDER` environment variable.
+
+### Init Command
+
+Initialize Claude Code configuration in a repository or globally.
+
+- `agentctl init` - Initialize Claude Code configuration
+  - `--global` - Install to `$HOME/.claude` instead of current repository
+  - `--force` - Overwrite existing files
+  - `--no-index` - Skip Claude CLI repository indexing
+
+### Other Commands
+
+- `agentctl version` - Show the current version
+- `agentctl status` - Show the status of Claude Code installation
+- `agentctl completion [bash|zsh|fish|powershell]` - Generate shell completion scripts
 
 ## Development
 
 ### Prerequisites
 
-- Python 3.13+
-- uv
-- just
-- macOS (for full feature support)
+- Go 1.24+
+- `just` (command runner)
+- `golangci-lint` (for linting)
+- `gofumpt` (for formatting)
+- `govulncheck` (for vulnerability checking)
+- macOS (for full feature support, including notifications)
 
 ### Setup
 
 ```bash
-# Install dependencies
+# Install system dependencies
 just deps
 
-# Install in editable mode
+# Install globally
 just install
 
 # Run tests
@@ -108,18 +133,19 @@ just lint
 
 # Format code
 just format
-```
 
-### Running Tests
-
-```bash
-just test
+# Run all CI checks
+just ci
 ```
 
 ### Building
 
 ```bash
+# Build binary
 just build
+
+# Clean build artifacts
+just clean
 ```
 
 ## Release Process
@@ -135,8 +161,8 @@ just build
    ```
 
 3. GitHub Actions automatically:
-   - Builds the package
-   - Creates GitHub Release
+   - Builds binaries for multiple platforms
+   - Creates GitHub Release with assets
 
 ## License
 

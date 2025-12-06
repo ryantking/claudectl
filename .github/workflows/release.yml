@@ -10,7 +10,17 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - os: ubuntu-latest
+            goos: darwin
+          - os: macos-latest
+            goos: linux
 
     steps:
       - name: Checkout code
@@ -19,34 +29,77 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          enable-cache: true
+          go-version: '1.25.5'
 
       - name: Install Just
         uses: extractions/setup-just@v3
 
-      - name: Build package
-        run: uv python install 3.13 && just build
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=${{ github.ref_name }}
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          LDFLAGS="-s -w -X github.com/ryantking/agentctl/cmd/agentctl.version=${VERSION} -X github.com/ryantking/agentctl/cmd/agentctl.commit=${COMMIT} -X github.com/ryantking/agentctl/cmd/agentctl.date=${DATE}"
+          go build -ldflags "${LDFLAGS}" -trimpath -o agentctl ./cmd/agentctl
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentctl-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: agentctl
+          retention-days: 30
+
+  release:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: agentctl-*
+          merge-multiple: false
+
+      - name: Create release archive
+        run: |
+          for dir in agentctl-*; do
+            os_arch=$(echo $dir | sed 's/agentctl-//')
+            tar -czf "agentctl-${GITHUB_REF_NAME}-${os_arch}.tar.gz" -C "$dir" agentctl
+          done
+
+      - name: Create checksums
+        run: |
+          sha256sum agentctl-*.tar.gz > checksums.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            agentctl-*.tar.gz
+            checksums.txt
           generate_release_notes: true
           body: |
             ## Installation
 
-            ### Via pip from GitHub Release
+            ### Via Homebrew (macOS)
             ```bash
-            pip install https://github.com/ryantking/agentctl/releases/download/${{ github.ref_name }}/agentctl-${{ github.ref_name }}.tar.gz
+            brew install ryantking/tap/agentctl
             ```
 
-            ### Via uv from GitHub Release
-            ```bash
-            uv tool install https://github.com/ryantking/agentctl/releases/download/${{ github.ref_name }}/agentctl-${{ github.ref_name }}.tar.gz
-            ```
+            ### Download Binary
+            Download the appropriate binary for your platform from the assets below.
 
             ### From source
             ```bash
