@@ -1,36 +1,26 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices",
+    ":semanticCommits",
+    "group:allNonMajor"
   ],
-  "separateMajorMinor": true,
+  "labels": ["dependencies"],
   "packageRules": [
     {
-      "description": "Group Go module non-major updates",
       "matchManagers": ["gomod"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Go dependencies (non-major)",
-      "groupSlug": "go-non-major"
+      "separateMajorMinor": true,
+      "postUpdateOptions": ["gomodTidy"]
     },
     {
-      "description": "Group GitHub Actions non-major updates",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "groupName": "GitHub Actions (non-major)",
       "groupSlug": "gha-non-major"
     },
     {
-      "description": "Group Python dependencies non-major updates",
-      "matchManagers": ["pip_requirements", "pipenv", "poetry"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Python dependencies (non-major)",
-      "groupSlug": "python-non-major"
-    },
-    {
-      "description": "Label major updates for review",
       "matchUpdateTypes": ["major"],
       "labels": ["major-update", "needs-review"]
     }
-  ],
-  "postUpdateOptions": ["gomodTidy"]
+  ]
 }
